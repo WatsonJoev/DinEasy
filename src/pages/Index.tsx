@@ -2,11 +2,18 @@
 import { useApp } from '@/contexts/AppContext';
 import { Layout } from '@/components/Layout';
 import { CustomerDashboard } from '@/components/customer/CustomerDashboard';
+import { ChefDashboard } from '@/components/chef/ChefDashboard';
+import { AdminDashboard } from '@/components/admin/AdminDashboard';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { useState } from 'react';
+import { toast } from '@/hooks/use-toast';
 
 const Index = () => {
   const { state, dispatch } = useApp();
+  const [adminCredentials, setAdminCredentials] = useState({ username: '', password: '' });
 
   // Home page - user type selection
   if (!state.userType) {
@@ -80,22 +87,83 @@ const Index = () => {
   if (state.userType === 'chef') {
     return (
       <Layout title="Kitchen Dashboard">
-        <div className="text-center py-12">
-          <h2 className="text-2xl font-bold mb-4">Chef Dashboard</h2>
-          <p className="text-muted-foreground">Chef interface coming soon...</p>
-        </div>
+        <ChefDashboard />
       </Layout>
     );
   }
 
-  // Admin interface
+  // Admin interface - with authentication
   if (state.userType === 'admin') {
+    if (!state.isAuthenticated) {
+      const handleAdminLogin = () => {
+        // Static authentication check
+        if (adminCredentials.username === 'admin' && adminCredentials.password === 'password') {
+          dispatch({ type: 'SET_AUTHENTICATED', payload: true });
+          toast({
+            title: "Welcome Admin!",
+            description: "Successfully logged into admin dashboard"
+          });
+        } else {
+          toast({
+            title: "Invalid credentials",
+            description: "Please check your username and password",
+            variant: "destructive"
+          });
+        }
+      };
+
+      return (
+        <Layout title="Admin Login" showUserSwitch={true}>
+          <div className="max-w-md mx-auto">
+            <Card>
+              <CardHeader>
+                <CardTitle>Admin Login</CardTitle>
+                <p className="text-sm text-muted-foreground">
+                  Demo credentials: admin / password
+                </p>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div>
+                  <Label htmlFor="username">Username</Label>
+                  <Input
+                    id="username"
+                    value={adminCredentials.username}
+                    onChange={(e) => setAdminCredentials({
+                      ...adminCredentials,
+                      username: e.target.value
+                    })}
+                    placeholder="Enter username"
+                  />
+                </div>
+                
+                <div>
+                  <Label htmlFor="password">Password</Label>
+                  <Input
+                    id="password"
+                    type="password"
+                    value={adminCredentials.password}
+                    onChange={(e) => setAdminCredentials({
+                      ...adminCredentials,
+                      password: e.target.value
+                    })}
+                    placeholder="Enter password"
+                    onKeyPress={(e) => e.key === 'Enter' && handleAdminLogin()}
+                  />
+                </div>
+                
+                <Button onClick={handleAdminLogin} className="w-full">
+                  Login
+                </Button>
+              </CardContent>
+            </Card>
+          </div>
+        </Layout>
+      );
+    }
+
     return (
       <Layout title="Admin Dashboard">
-        <div className="text-center py-12">
-          <h2 className="text-2xl font-bold mb-4">Admin Dashboard</h2>
-          <p className="text-muted-foreground">Admin interface coming soon...</p>
-        </div>
+        <AdminDashboard />
       </Layout>
     );
   }

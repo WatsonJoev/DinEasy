@@ -1,101 +1,76 @@
 
+import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Progress } from '@/components/ui/progress';
 import { useApp } from '@/contexts/AppContext';
-import { Clock, CheckCircle, ChefHat, Bell } from 'lucide-react';
+import { PaymentModal } from './PaymentModal';
+import { FeedbackModal } from './FeedbackModal';
+import { Clock, ChefHat, CheckCircle, Star, CreditCard } from 'lucide-react';
 
 export function OrderStatus() {
   const { state } = useApp();
+  const [selectedOrderForPayment, setSelectedOrderForPayment] = useState<any>(null);
+  const [selectedOrderForFeedback, setSelectedOrderForFeedback] = useState<string>('');
 
-  const activeOrders = state.orders.filter(order => 
-    order.status !== 'completed' && order.tableNumber === state.restaurant.table
+  const userOrders = state.orders.filter(order => 
+    order.tableNumber === state.restaurant.table
   );
+
+  const getStatusProgress = (status: string) => {
+    switch (status) {
+      case 'new': return 25;
+      case 'preparing': return 50;
+      case 'ready': return 75;
+      case 'completed': return 100;
+      default: return 0;
+    }
+  };
 
   const getStatusIcon = (status: string) => {
     switch (status) {
-      case 'new':
-        return <Bell className="w-5 h-5" />;
-      case 'preparing':
-        return <ChefHat className="w-5 h-5" />;
-      case 'ready':
-        return <CheckCircle className="w-5 h-5" />;
-      default:
-        return <Clock className="w-5 h-5" />;
+      case 'new': return <Clock className="w-5 h-5" />;
+      case 'preparing': return <ChefHat className="w-5 h-5" />;
+      case 'ready': return <CheckCircle className="w-5 h-5" />;
+      case 'completed': return <Star className="w-5 h-5" />;
+      default: return <Clock className="w-5 h-5" />;
     }
   };
 
-  const getStatusColor = (status: string) => {
+  const getStatusMessage = (status: string) => {
     switch (status) {
-      case 'new':
-        return 'bg-blue-500';
-      case 'preparing':
-        return 'bg-warm-orange';
-      case 'ready':
-        return 'bg-green-500';
-      default:
-        return 'bg-gray-500';
+      case 'new': return 'Order received! We\'ll start preparing it soon.';
+      case 'preparing': return 'Your delicious meal is being prepared with care.';
+      case 'ready': return 'Your order is ready! Please collect it.';
+      case 'completed': return 'Order completed. Thank you for dining with us!';
+      default: return 'Processing your order...';
     }
   };
 
-  const getStatusText = (status: string) => {
+  const getEstimatedTime = (status: string) => {
     switch (status) {
-      case 'new':
-        return 'Order Received';
-      case 'preparing':
-        return 'Preparing';
-      case 'ready':
-        return 'Ready for Pickup';
-      default:
-        return status;
+      case 'new': return '5-10 minutes';
+      case 'preparing': return '3-8 minutes';
+      case 'ready': return 'Ready now!';
+      case 'completed': return 'Completed';
+      default: return 'Processing...';
     }
   };
 
-  if (activeOrders.length === 0) {
+  if (userOrders.length === 0) {
     return (
       <Card>
         <CardHeader>
           <CardTitle>Order Status</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="text-center py-8">
-            <p className="text-muted-foreground mb-4">
-              No active orders. Place an order to track its status!
+          <div className="text-center py-12">
+            <ChefHat className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
+            <p className="text-muted-foreground">No orders placed yet.</p>
+            <p className="text-sm text-muted-foreground mt-2">
+              Place an order from our menu to track it here!
             </p>
-            <div className="bg-sage-green/20 rounded-lg p-6">
-              <h3 className="font-semibold text-earth-brown mb-2">
-                Enjoy Our Ambiance
-              </h3>
-              <p className="text-sm text-muted-foreground mb-4">
-                While you're here, why not explore our restaurant?
-              </p>
-              <div className="space-y-3">
-                <Card className="p-3">
-                  <h4 className="font-medium text-sm">Customer Testimonials</h4>
-                  <div className="mt-2 space-y-2">
-                    {state.youtubeVideos.map((videoId, index) => (
-                      <div key={videoId} className="bg-muted rounded p-2 text-xs">
-                        Video Testimonial #{index + 1}
-                      </div>
-                    ))}
-                  </div>
-                </Card>
-                
-                <Card className="p-3">
-                  <h4 className="font-medium text-sm">Top 5 Delicious Dishes</h4>
-                  <div className="mt-2 space-y-1">
-                    {state.topDishes.slice(0, 5).map((dish, index) => (
-                      <div key={dish} className="flex items-center gap-2 text-xs">
-                        <Badge variant="outline" className="w-6 h-6 p-0 flex items-center justify-center">
-                          {index + 1}
-                        </Badge>
-                        <span>{dish}</span>
-                      </div>
-                    ))}
-                  </div>
-                </Card>
-              </div>
-            </div>
           </div>
         </CardContent>
       </Card>
@@ -104,100 +79,171 @@ export function OrderStatus() {
 
   return (
     <div className="space-y-6">
-      {activeOrders.map((order) => (
-        <Card key={order.id}>
-          <CardHeader>
-            <CardTitle className="flex items-center justify-between">
-              <span>Order #{order.id.slice(-6)}</span>
-              <Badge variant="outline">
-                {new Date(order.timestamp).toLocaleTimeString()}
+      <h3 className="text-xl font-semibold">Your Orders</h3>
+      
+      {userOrders.map(order => (
+        <Card key={order.id} className="overflow-hidden">
+          <CardHeader className="pb-3">
+            <div className="flex justify-between items-start">
+              <CardTitle className="text-lg">
+                Order #{order.id.slice(-4)}
+              </CardTitle>
+              <Badge variant={
+                order.status === 'new' ? 'destructive' :
+                order.status === 'preparing' ? 'default' :
+                order.status === 'ready' ? 'secondary' : 'outline'
+              }>
+                {order.status.toUpperCase()}
               </Badge>
-            </CardTitle>
+            </div>
+            <div className="text-sm text-muted-foreground">
+              Placed at {new Date(order.timestamp).toLocaleTimeString()}
+            </div>
           </CardHeader>
           
           <CardContent className="space-y-4">
             {/* Status Progress */}
-            <div className="flex items-center gap-4">
-              <div className={`w-10 h-10 rounded-full ${getStatusColor(order.status)} flex items-center justify-center text-white`}>
-                {getStatusIcon(order.status)}
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  {getStatusIcon(order.status)}
+                  <span className="font-medium">{getStatusMessage(order.status)}</span>
+                </div>
+                <span className="text-sm text-muted-foreground">
+                  ETA: {getEstimatedTime(order.status)}
+                </span>
               </div>
-              <div>
-                <h3 className="font-semibold">{getStatusText(order.status)}</h3>
-                <p className="text-sm text-muted-foreground">
-                  {order.status === 'preparing' && 'Usually takes 5-10 minutes'}
-                  {order.status === 'new' && 'Your order has been received'}
-                  {order.status === 'ready' && 'Your order is ready!'}
-                </p>
-              </div>
+              <Progress value={getStatusProgress(order.status)} className="w-full" />
             </div>
 
             {/* Order Items */}
             <div className="space-y-2">
               <h4 className="font-medium">Order Items:</h4>
-              {order.items.map((item) => (
-                <div key={item.menuItem.id} className="flex justify-between text-sm bg-muted p-2 rounded">
-                  <span>{item.quantity}x {item.menuItem.name}</span>
+              {order.items.map((item: any, index: number) => (
+                <div key={index} className="flex justify-between items-center text-sm">
+                  <span>{item.menuItem.name} x{item.quantity}</span>
                   <span>${(item.menuItem.price * item.quantity).toFixed(2)}</span>
                 </div>
               ))}
-              <div className="flex justify-between font-semibold pt-2 border-t">
+              <div className="border-t pt-2 flex justify-between font-semibold">
                 <span>Total:</span>
                 <span>${order.total.toFixed(2)}</span>
               </div>
             </div>
 
-            {/* Payment Button */}
+            {/* Ambiance Section for preparing/ready orders */}
+            {(order.status === 'preparing' || order.status === 'ready') && (
+              <Card className="bg-cream/50">
+                <CardContent className="p-4">
+                  <h4 className="font-medium mb-3">Enjoy Our Ambiance</h4>
+                  <p className="text-sm text-muted-foreground mb-3">
+                    While you wait, enjoy these customer experiences:
+                  </p>
+                  <div className="space-y-2">
+                    {state.youtubeVideos.map((videoId, index) => (
+                      <a
+                        key={index}
+                        href={`https://youtube.com/watch?v=${videoId}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="block p-2 bg-white rounded border hover:bg-gray-50 transition-colors"
+                      >
+                        <div className="text-sm font-medium">Customer Experience Video {index + 1}</div>
+                        <div className="text-xs text-muted-foreground">Click to watch on YouTube</div>
+                      </a>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Payment Button for ready orders */}
             {order.status === 'ready' && (
               <Button
-                className="w-full bg-sage-green hover:bg-sage-green/90 text-earth-brown"
+                onClick={() => setSelectedOrderForPayment(order)}
+                className="w-full bg-warm-orange hover:bg-warm-orange/90 text-earth-brown"
                 size="lg"
               >
+                <CreditCard className="w-5 h-5 mr-2" />
                 Request Bill & Pay
               </Button>
+            )}
+
+            {/* Feedback Button for completed orders */}
+            {order.status === 'completed' && !order.customerFeedback && (
+              <Button
+                onClick={() => setSelectedOrderForFeedback(order.id)}
+                variant="outline"
+                className="w-full"
+              >
+                <Star className="w-4 h-4 mr-2" />
+                Share Your Experience
+              </Button>
+            )}
+
+            {/* Feedback Display for completed orders with feedback */}
+            {order.status === 'completed' && order.customerFeedback && (
+              <Card className="bg-sage-green/10 border-sage-green/20">
+                <CardContent className="p-3">
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="text-sm font-medium">Your Feedback:</span>
+                    <div className="flex">
+                      {Array.from({ length: 5 }, (_, i) => (
+                        <Star
+                          key={i}
+                          className={`w-4 h-4 ${
+                            i < order.customerFeedback.rating
+                              ? 'text-yellow-400 fill-current'
+                              : 'text-gray-300'
+                          }`}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                  {order.customerFeedback.comment && (
+                    <p className="text-sm text-muted-foreground italic">
+                      "{order.customerFeedback.comment}"
+                    </p>
+                  )}
+                </CardContent>
+              </Card>
             )}
           </CardContent>
         </Card>
       ))}
 
-      {/* Ambiance Section */}
-      {activeOrders.some(order => order.status === 'preparing') && (
-        <Card className="bg-sage-green/20">
-          <CardHeader>
-            <CardTitle className="text-earth-brown">Enjoy Our Ambiance</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <p className="text-sm text-muted-foreground">
-              While your food is being prepared, take a moment to enjoy our restaurant atmosphere.
-            </p>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <Card className="p-4">
-                <h4 className="font-medium mb-2">Customer Testimonials</h4>
-                <div className="space-y-2">
-                  {state.youtubeVideos.map((videoId, index) => (
-                    <div key={videoId} className="bg-white/50 rounded p-2 text-sm">
-                      📺 Customer Testimonial #{index + 1}
-                    </div>
-                  ))}
-                </div>
-              </Card>
-              
-              <Card className="p-4">
-                <h4 className="font-medium mb-2">Top 5 Delicious Dishes</h4>
-                <div className="space-y-2">
-                  {state.topDishes.slice(0, 5).map((dish, index) => (
-                    <div key={dish} className="flex items-center gap-2 text-sm">
-                      <Badge variant="secondary" className="w-6 h-6 p-0 flex items-center justify-center text-xs">
-                        {index + 1}
-                      </Badge>
-                      <span>{dish}</span>
-                    </div>
-                  ))}
-                </div>
-              </Card>
-            </div>
-          </CardContent>
-        </Card>
+      {/* Top Dishes Section */}
+      <Card className="bg-gradient-to-r from-sage-green/10 to-warm-orange/10">
+        <CardHeader>
+          <CardTitle className="text-earth-brown">Our Top 5 Delicious Dishes</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            {state.topDishes.map((dish, index) => (
+              <div key={index} className="flex items-center gap-2 p-2 bg-white/50 rounded">
+                <span className="font-bold text-warm-orange">#{index + 1}</span>
+                <span className="font-medium">{dish}</span>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Modals */}
+      {selectedOrderForPayment && (
+        <PaymentModal
+          open={!!selectedOrderForPayment}
+          onOpenChange={(open) => !open && setSelectedOrderForPayment(null)}
+          order={selectedOrderForPayment}
+        />
+      )}
+
+      {selectedOrderForFeedback && (
+        <FeedbackModal
+          open={!!selectedOrderForFeedback}
+          onOpenChange={(open) => !open && setSelectedOrderForFeedback('')}
+          orderId={selectedOrderForFeedback}
+        />
       )}
     </div>
   );
