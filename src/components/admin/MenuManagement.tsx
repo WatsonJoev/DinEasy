@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -8,6 +7,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useApp } from '@/contexts/AppContext';
 import { toast } from '@/hooks/use-toast';
 import { Plus, Edit, Trash2 } from 'lucide-react';
@@ -23,7 +23,13 @@ export function MenuManagement() {
     price: '',
     category: '',
     image: '',
-    inStock: true
+    inStock: true,
+    foodType: 'veg' as 'veg' | 'non-veg' | 'vegan' | 'jain',
+    recommended: false,
+    spiceLevel: 'medium' as 'mild' | 'medium' | 'spicy' | 'very-spicy',
+    preparationTime: '15',
+    availableFrom: '09:00',
+    availableTo: '23:00'
   });
 
   const resetForm = () => {
@@ -33,7 +39,13 @@ export function MenuManagement() {
       price: '',
       category: '',
       image: '',
-      inStock: true
+      inStock: true,
+      foodType: 'veg',
+      recommended: false,
+      spiceLevel: 'medium',
+      preparationTime: '15',
+      availableFrom: '09:00',
+      availableTo: '23:00'
     });
   };
 
@@ -54,7 +66,13 @@ export function MenuManagement() {
       price: parseFloat(formData.price),
       category: formData.category || 'Main Course',
       image: formData.image || 'https://images.unsplash.com/photo-1567620905732-2d1ec7ab7445?w=400',
-      inStock: formData.inStock
+      inStock: formData.inStock,
+      foodType: formData.foodType,
+      recommended: formData.recommended,
+      spiceLevel: formData.spiceLevel,
+      preparationTime: parseInt(formData.preparationTime),
+      availableFrom: formData.availableFrom,
+      availableTo: formData.availableTo
     };
 
     dispatch({ type: 'ADD_MENU_ITEM', payload: newItem });
@@ -75,7 +93,13 @@ export function MenuManagement() {
       price: item.price.toString(),
       category: item.category,
       image: item.image,
-      inStock: item.inStock
+      inStock: item.inStock,
+      foodType: item.foodType || 'veg',
+      recommended: item.recommended || false,
+      spiceLevel: item.spiceLevel || 'medium',
+      preparationTime: item.preparationTime?.toString() || '15',
+      availableFrom: item.availableFrom || '09:00',
+      availableTo: item.availableTo || '23:00'
     });
     setIsEditDialogOpen(true);
   };
@@ -97,7 +121,13 @@ export function MenuManagement() {
       price: parseFloat(formData.price),
       category: formData.category,
       image: formData.image,
-      inStock: formData.inStock
+      inStock: formData.inStock,
+      foodType: formData.foodType,
+      recommended: formData.recommended,
+      spiceLevel: formData.spiceLevel,
+      preparationTime: parseInt(formData.preparationTime),
+      availableFrom: formData.availableFrom,
+      availableTo: formData.availableTo
     };
 
     dispatch({ type: 'UPDATE_MENU_ITEM', payload: updatedItem });
@@ -147,7 +177,7 @@ export function MenuManagement() {
       
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <Label htmlFor="price">Price ($)</Label>
+          <Label htmlFor="price">Price (₹)</Label>
           <Input
             id="price"
             type="number"
@@ -168,6 +198,71 @@ export function MenuManagement() {
           />
         </div>
       </div>
+
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <Label htmlFor="foodType">Food Type</Label>
+          <Select value={formData.foodType} onValueChange={(value: any) => setFormData({...formData, foodType: value})}>
+            <SelectTrigger>
+              <SelectValue placeholder="Select food type" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="veg">Vegetarian</SelectItem>
+              <SelectItem value="non-veg">Non-Vegetarian</SelectItem>
+              <SelectItem value="vegan">Vegan</SelectItem>
+              <SelectItem value="jain">Jain</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div>
+          <Label htmlFor="spiceLevel">Spice Level</Label>
+          <Select value={formData.spiceLevel} onValueChange={(value: any) => setFormData({...formData, spiceLevel: value})}>
+            <SelectTrigger>
+              <SelectValue placeholder="Select spice level" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="mild">Mild</SelectItem>
+              <SelectItem value="medium">Medium</SelectItem>
+              <SelectItem value="spicy">Spicy</SelectItem>
+              <SelectItem value="very-spicy">Very Spicy</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-3 gap-4">
+        <div>
+          <Label htmlFor="preparationTime">Prep Time (min)</Label>
+          <Input
+            id="preparationTime"
+            type="number"
+            value={formData.preparationTime}
+            onChange={(e) => setFormData({...formData, preparationTime: e.target.value})}
+            placeholder="15"
+          />
+        </div>
+
+        <div>
+          <Label htmlFor="availableFrom">Available From</Label>
+          <Input
+            id="availableFrom"
+            type="time"
+            value={formData.availableFrom}
+            onChange={(e) => setFormData({...formData, availableFrom: e.target.value})}
+          />
+        </div>
+
+        <div>
+          <Label htmlFor="availableTo">Available To</Label>
+          <Input
+            id="availableTo"
+            type="time"
+            value={formData.availableTo}
+            onChange={(e) => setFormData({...formData, availableTo: e.target.value})}
+          />
+        </div>
+      </div>
       
       <div>
         <Label htmlFor="image">Image URL</Label>
@@ -179,13 +274,24 @@ export function MenuManagement() {
         />
       </div>
       
-      <div className="flex items-center space-x-2">
-        <Switch
-          id="inStock"
-          checked={formData.inStock}
-          onCheckedChange={(checked) => setFormData({...formData, inStock: checked})}
-        />
-        <Label htmlFor="inStock">In Stock</Label>
+      <div className="flex items-center justify-between">
+        <div className="flex items-center space-x-2">
+          <Switch
+            id="inStock"
+            checked={formData.inStock}
+            onCheckedChange={(checked) => setFormData({...formData, inStock: checked})}
+          />
+          <Label htmlFor="inStock">In Stock</Label>
+        </div>
+
+        <div className="flex items-center space-x-2">
+          <Switch
+            id="recommended"
+            checked={formData.recommended}
+            onCheckedChange={(checked) => setFormData({...formData, recommended: checked})}
+          />
+          <Label htmlFor="recommended">Recommended</Label>
+        </div>
       </div>
     </div>
   );
@@ -202,7 +308,7 @@ export function MenuManagement() {
               Add Item
             </Button>
           </DialogTrigger>
-          <DialogContent>
+          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>Add New Menu Item</DialogTitle>
             </DialogHeader>
@@ -221,9 +327,14 @@ export function MenuManagement() {
             <CardHeader className="pb-2">
               <div className="flex justify-between items-start">
                 <CardTitle className="text-lg">{item.name}</CardTitle>
-                <Badge variant={item.inStock ? "default" : "destructive"}>
-                  {item.inStock ? "In Stock" : "Out of Stock"}
-                </Badge>
+                <div className="flex gap-1">
+                  <Badge variant={item.inStock ? "default" : "destructive"}>
+                    {item.inStock ? "In Stock" : "Out of Stock"}
+                  </Badge>
+                  {item.recommended && (
+                    <Badge variant="secondary">⭐</Badge>
+                  )}
+                </div>
               </div>
             </CardHeader>
             
@@ -239,8 +350,17 @@ export function MenuManagement() {
               </p>
               
               <div className="flex justify-between items-center mb-4">
-                <span className="text-lg font-bold">${item.price.toFixed(2)}</span>
+                <span className="text-lg font-bold">₹{item.price.toFixed(2)}</span>
                 <Badge variant="outline">{item.category}</Badge>
+              </div>
+
+              <div className="flex gap-2 mb-4">
+                <Badge variant={item.foodType === 'veg' ? 'default' : 'destructive'}>
+                  {item.foodType === 'veg' ? '🟢 Veg' : item.foodType === 'non-veg' ? '🔴 Non-Veg' : item.foodType === 'vegan' ? '🌱 Vegan' : '🟡 Jain'}
+                </Badge>
+                <Badge variant="outline">
+                  🌶️ {item.spiceLevel}
+                </Badge>
               </div>
               
               <div className="flex items-center justify-between mb-4">
@@ -276,7 +396,7 @@ export function MenuManagement() {
 
       {/* Edit Dialog */}
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Edit Menu Item</DialogTitle>
           </DialogHeader>
