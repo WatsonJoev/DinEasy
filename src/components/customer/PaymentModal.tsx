@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -13,10 +12,11 @@ interface PaymentModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   order: any;
+  onPaymentComplete?: (orderId: string) => void;
 }
 
-export function PaymentModal({ open, onOpenChange, order }: PaymentModalProps) {
-  const { state } = useApp();
+export function PaymentModal({ open, onOpenChange, order, onPaymentComplete }: PaymentModalProps) {
+  const { state, dispatch } = useApp();
   const [paymentMethod, setPaymentMethod] = useState<'cash' | 'upi' | null>(null);
   const [showUpiQr, setShowUpiQr] = useState(false);
   const [paymentCompleted, setPaymentCompleted] = useState(false);
@@ -26,37 +26,38 @@ export function PaymentModal({ open, onOpenChange, order }: PaymentModalProps) {
     
     if (method === 'upi') {
       setShowUpiQr(true);
-      // Simulate UPI QR code generation
       toast({
         title: "UPI QR Generated",
         description: "Please scan the QR code with your UPI app"
       });
     } else {
-      // Cash payment - immediate completion
       handlePaymentComplete();
     }
   };
 
   const handlePaymentComplete = () => {
     setPaymentCompleted(true);
+    
+    // Mark order as completed and update analytics
+    dispatch({
+      type: 'COMPLETE_ORDER_PAYMENT',
+      payload: order.id
+    });
+    
     toast({
       title: "Payment Successful!",
       description: "Thank you for your payment. Your e-bill is ready."
     });
   };
 
-  const handleDownloadBill = () => {
-    toast({
-      title: "Bill Downloaded",
-      description: "E-bill has been saved to your downloads"
-    });
-  };
-
-  const handleEmailBill = () => {
-    toast({
-      title: "Bill Sent",
-      description: "E-bill has been sent to your email"
-    });
+  const handleCloseModal = () => {
+    onOpenChange(false);
+    if (paymentCompleted && onPaymentComplete) {
+      // Trigger feedback modal after closing payment modal
+      setTimeout(() => {
+        onPaymentComplete(order.id);
+      }, 500);
+    }
   };
 
   const generateBillContent = () => (
@@ -104,9 +105,23 @@ export function PaymentModal({ open, onOpenChange, order }: PaymentModalProps) {
     </div>
   );
 
+  const handleDownloadBill = () => {
+    toast({
+      title: "Bill Downloaded",
+      description: "E-bill has been saved to your downloads"
+    });
+  };
+
+  const handleEmailBill = () => {
+    toast({
+      title: "Bill Sent",
+      description: "E-bill has been sent to your email"
+    });
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md">
+      <DialogContent className="max-w-md mx-4">
         <DialogHeader>
           <DialogTitle>Payment & E-Bill</DialogTitle>
         </DialogHeader>
@@ -151,7 +166,6 @@ export function PaymentModal({ open, onOpenChange, order }: PaymentModalProps) {
               <CardContent className="p-4 text-center">
                 <h4 className="font-semibold mb-4">Scan UPI QR Code</h4>
                 
-                {/* Mock QR Code */}
                 <div className="w-48 h-48 mx-auto bg-gray-200 flex items-center justify-center mb-4 rounded-lg">
                   <div className="text-center">
                     <QrCode className="w-12 h-12 mx-auto mb-2" />
@@ -205,7 +219,7 @@ export function PaymentModal({ open, onOpenChange, order }: PaymentModalProps) {
               </div>
               
               <Button
-                onClick={() => onOpenChange(false)}
+                onClick={handleCloseModal}
                 className="w-full bg-sage-green hover:bg-sage-green/90 text-earth-brown"
               >
                 Close

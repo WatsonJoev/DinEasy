@@ -3,237 +3,253 @@ import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useApp } from '@/contexts/AppContext';
 import { toast } from '@/hooks/use-toast';
-import { ChefHat, Clock, CheckCircle } from 'lucide-react';
+import { Clock, ChefHat, CheckCircle, Bell } from 'lucide-react';
 
 export function ChefDashboard() {
   const { state, dispatch } = useApp();
-  const [notification, setNotification] = useState<string | null>(null);
+  const [lastOrderCount, setLastOrderCount] = useState(0);
 
   const newOrders = state.orders.filter(order => order.status === 'new');
   const preparingOrders = state.orders.filter(order => order.status === 'preparing');
-  const completedOrders = state.orders.filter(order => order.status === 'completed');
+  const readyOrders = state.orders.filter(order => order.status === 'ready');
+  const completedTodayOrders = state.orders.filter(order => order.status === 'completed');
 
-  // Sound notification for new orders
+  // Notification for new orders
   useEffect(() => {
-    if (newOrders.length > 0) {
-      setNotification(`${newOrders.length} new order(s) received!`);
-      // In a real app, you'd play a sound here
-      console.log('🔔 New order notification sound');
-    }
-  }, [newOrders.length]);
-
-  const handleStartPreparing = (orderId: string) => {
-    dispatch({
-      type: 'UPDATE_ORDER_STATUS',
-      payload: { orderId, status: 'preparing' }
-    });
-    toast({
-      title: "Order preparation started",
-      description: "Order has been moved to preparing queue"
-    });
-  };
-
-  const handleMarkReady = (orderId: string) => {
-    dispatch({
-      type: 'UPDATE_ORDER_STATUS',
-      payload: { orderId, status: 'ready' }
-    });
-    toast({
-      title: "Order ready!",
-      description: "Customer has been notified"
-    });
-  };
-
-  const handleCompleteOrder = (orderId: string) => {
-    dispatch({
-      type: 'UPDATE_ORDER_STATUS',
-      payload: { orderId, status: 'completed' }
-    });
-    toast({
-      title: "Order completed",
-      description: "Order moved to history"
-    });
-  };
-
-  const OrderCard = ({ order, showActions }: { order: any; showActions: boolean }) => (
-    <Card className="mb-4">
-      <CardHeader className="pb-2">
-        <div className="flex justify-between items-start">
-          <CardTitle className="text-lg flex items-center gap-2">
-            <ChefHat className="w-5 h-5" />
-            Order #{order.id.slice(-4)}
-          </CardTitle>
-          <Badge variant={
-            order.status === 'new' ? 'destructive' :
-            order.status === 'preparing' ? 'default' : 'secondary'
-          }>
-            {order.status.toUpperCase()}
-          </Badge>
-        </div>
-        <div className="flex items-center gap-4 text-sm text-muted-foreground">
-          <span>{order.tableNumber}</span>
-          <span className="flex items-center gap-1">
-            <Clock className="w-4 h-4" />
-            {new Date(order.timestamp).toLocaleTimeString()}
-          </span>
-        </div>
-      </CardHeader>
+    if (newOrders.length > lastOrderCount) {
+      // New order received
+      toast({
+        title: "🔔 New Order Received!",
+        description: `Table ${newOrders[newOrders.length - 1]?.tableNumber} has placed an order`,
+      });
       
-      <CardContent>
-        <div className="space-y-2 mb-4">
-          {order.items.map((item: any, index: number) => (
-            <div key={index} className="flex justify-between items-center py-2 border-b">
-              <span className="font-medium">{item.menuItem.name}</span>
-              <Badge variant="outline">x{item.quantity}</Badge>
-            </div>
-          ))}
-        </div>
-        
-        <div className="flex justify-between items-center text-lg font-semibold mb-4">
-          <span>Total: ${order.total.toFixed(2)}</span>
-        </div>
-        
-        {showActions && (
-          <div className="flex gap-2">
-            {order.status === 'new' && (
-              <Button
-                onClick={() => handleStartPreparing(order.id)}
-                className="flex-1 bg-warm-orange hover:bg-warm-orange/90 text-earth-brown"
-              >
-                Start Preparing
-              </Button>
-            )}
-            {order.status === 'preparing' && (
-              <Button
-                onClick={() => handleMarkReady(order.id)}
-                className="flex-1 bg-sage-green hover:bg-sage-green/90 text-earth-brown"
-              >
-                Mark Ready
-              </Button>
-            )}
-            {order.status === 'ready' && (
-              <Button
-                onClick={() => handleCompleteOrder(order.id)}
-                className="flex-1 bg-earth-brown hover:bg-earth-brown/90"
-                variant="default"
-              >
-                <CheckCircle className="w-4 h-4 mr-2" />
-                Complete Order
-              </Button>
-            )}
-          </div>
-        )}
-      </CardContent>
-    </Card>
-  );
+      // Play notification sound (optional)
+      if (typeof Audio !== 'undefined') {
+        try {
+          const audio = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+LvzGomAiB+yOzdlUwHEGnA7+WVRQ==');
+          audio.volume = 0.3;
+          audio.play().catch(() => {});
+        } catch (e) {}
+      }
+    }
+    setLastOrderCount(newOrders.length);
+  }, [newOrders.length, lastOrderCount]);
+
+  const handleStatusUpdate = (orderId: string, newStatus: 'preparing' | 'ready') => {
+    dispatch({
+      type: 'UPDATE_ORDER_STATUS',
+      payload: { orderId, status: newStatus }
+    });
+
+    const statusMessages = {
+      preparing: "Order marked as preparing",
+      ready: "Order marked as ready for pickup"
+    };
+
+    toast({
+      title: statusMessages[newStatus],
+      description: `Order #${orderId.slice(-4)} status updated`
+    });
+  };
+
+  const getTimeAgo = (timestamp: Date) => {
+    const now = new Date();
+    const diff = now.getTime() - new Date(timestamp).getTime();
+    const minutes = Math.floor(diff / 60000);
+    
+    if (minutes < 1) return 'Just now';
+    if (minutes === 1) return '1 minute ago';
+    return `${minutes} minutes ago`;
+  };
 
   return (
-    <div className="space-y-6">
-      {/* Notification Banner */}
-      {notification && (
-        <Card className="bg-warm-orange/20 border-warm-orange">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <span className="font-semibold text-earth-brown">{notification}</span>
-              <Button
-                size="sm"
-                variant="ghost"
-                onClick={() => setNotification(null)}
-              >
-                Dismiss
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Kitchen Status */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <Card>
-          <CardHeader className="text-center">
-            <CardTitle className="text-soft-red">New Orders</CardTitle>
+    <div className="space-y-6 p-4">
+      {/* Stats Cards */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <Card className="bg-gradient-to-br from-red-50 to-red-100 border-red-200">
+          <CardHeader className="text-center pb-2">
+            <CardTitle className="text-red-700 text-sm">New Orders</CardTitle>
           </CardHeader>
-          <CardContent className="text-center">
-            <div className="text-3xl font-bold text-soft-red">{newOrders.length}</div>
+          <CardContent className="text-center pt-0">
+            <div className="text-2xl font-bold text-red-700">{newOrders.length}</div>
           </CardContent>
         </Card>
         
-        <Card>
-          <CardHeader className="text-center">
-            <CardTitle className="text-warm-orange">Preparing</CardTitle>
+        <Card className="bg-gradient-to-br from-blue-50 to-blue-100 border-blue-200">
+          <CardHeader className="text-center pb-2">
+            <CardTitle className="text-blue-700 text-sm">Preparing</CardTitle>
           </CardHeader>
-          <CardContent className="text-center">
-            <div className="text-3xl font-bold text-warm-orange">{preparingOrders.length}</div>
+          <CardContent className="text-center pt-0">
+            <div className="text-2xl font-bold text-blue-700">{preparingOrders.length}</div>
           </CardContent>
         </Card>
         
-        <Card>
-          <CardHeader className="text-center">
-            <CardTitle className="text-sage-green">Completed Today</CardTitle>
+        <Card className="bg-gradient-to-br from-green-50 to-green-100 border-green-200">
+          <CardHeader className="text-center pb-2">
+            <CardTitle className="text-green-700 text-sm">Ready</CardTitle>
           </CardHeader>
-          <CardContent className="text-center">
-            <div className="text-3xl font-bold text-sage-green">{completedOrders.length}</div>
+          <CardContent className="text-center pt-0">
+            <div className="text-2xl font-bold text-green-700">{readyOrders.length}</div>
+          </CardContent>
+        </Card>
+        
+        <Card className="bg-gradient-to-br from-purple-50 to-purple-100 border-purple-200">
+          <CardHeader className="text-center pb-2">
+            <CardTitle className="text-purple-700 text-sm">Completed Today</CardTitle>
+          </CardHeader>
+          <CardContent className="text-center pt-0">
+            <div className="text-2xl font-bold text-purple-700">{completedTodayOrders.length}</div>
           </CardContent>
         </Card>
       </div>
 
-      {/* Orders Management */}
-      <Tabs defaultValue="queue">
-        <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="queue">Active Queue</TabsTrigger>
-          <TabsTrigger value="history">Completed Orders</TabsTrigger>
-        </TabsList>
+      {/* Active Orders Queue */}
+      <div className="space-y-4">
+        <h2 className="text-xl font-semibold flex items-center gap-2">
+          <ChefHat className="w-5 h-5" />
+          Kitchen Queue
+        </h2>
 
-        <TabsContent value="queue" className="space-y-4">
-          <h3 className="text-xl font-semibold">Kitchen Queue</h3>
-          
-          {newOrders.length > 0 && (
-            <div>
-              <h4 className="text-lg font-medium text-soft-red mb-3">New Orders</h4>
-              {newOrders.map(order => (
-                <OrderCard key={order.id} order={order} showActions={true} />
-              ))}
-            </div>
-          )}
-          
-          {preparingOrders.length > 0 && (
-            <div>
-              <h4 className="text-lg font-medium text-warm-orange mb-3">Currently Preparing</h4>
-              {preparingOrders.map(order => (
-                <OrderCard key={order.id} order={order} showActions={true} />
-              ))}
-            </div>
-          )}
-          
-          {newOrders.length === 0 && preparingOrders.length === 0 && (
-            <Card>
-              <CardContent className="text-center py-12">
-                <ChefHat className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
-                <p className="text-muted-foreground">No active orders. Kitchen is caught up!</p>
-              </CardContent>
-            </Card>
-          )}
-        </TabsContent>
+        {/* New Orders */}
+        {newOrders.length > 0 && (
+          <div className="space-y-3">
+            <h3 className="font-medium text-red-700 flex items-center gap-2">
+              <Bell className="w-4 h-4" />
+              New Orders ({newOrders.length})
+            </h3>
+            {newOrders.map(order => (
+              <Card key={order.id} className="border-red-200 bg-red-50/50">
+                <CardContent className="p-4">
+                  <div className="flex justify-between items-start mb-3">
+                    <div>
+                      <div className="flex items-center gap-2 mb-1">
+                        <Badge variant="destructive">NEW</Badge>
+                        <span className="font-semibold">Table {order.tableNumber}</span>
+                        <span className="text-sm text-muted-foreground">#{order.id.slice(-4)}</span>
+                      </div>
+                      <div className="text-sm text-muted-foreground">
+                        {getTimeAgo(order.timestamp)}
+                      </div>
+                    </div>
+                    <Button
+                      onClick={() => handleStatusUpdate(order.id, 'preparing')}
+                      size="sm"
+                      className="bg-blue-600 hover:bg-blue-700"
+                    >
+                      Start Preparing
+                    </Button>
+                  </div>
+                  
+                  <div className="space-y-1">
+                    {order.items.map((item: any, index: number) => (
+                      <div key={index} className="text-sm flex justify-between">
+                        <span>{item.quantity}x {item.menuItem.name}</span>
+                        <span className="text-muted-foreground">${(item.menuItem.price * item.quantity).toFixed(2)}</span>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        )}
 
-        <TabsContent value="history" className="space-y-4">
-          <h3 className="text-xl font-semibold">Completed Orders</h3>
-          
-          {completedOrders.length > 0 ? (
-            completedOrders.map(order => (
-              <OrderCard key={order.id} order={order} showActions={false} />
-            ))
-          ) : (
-            <Card>
-              <CardContent className="text-center py-12">
-                <p className="text-muted-foreground">No completed orders today.</p>
-              </CardContent>
-            </Card>
-          )}
-        </TabsContent>
-      </Tabs>
+        {/* Preparing Orders */}
+        {preparingOrders.length > 0 && (
+          <div className="space-y-3">
+            <h3 className="font-medium text-blue-700 flex items-center gap-2">
+              <ChefHat className="w-4 h-4" />
+              Currently Preparing ({preparingOrders.length})
+            </h3>
+            {preparingOrders.map(order => (
+              <Card key={order.id} className="border-blue-200 bg-blue-50/50">
+                <CardContent className="p-4">
+                  <div className="flex justify-between items-start mb-3">
+                    <div>
+                      <div className="flex items-center gap-2 mb-1">
+                        <Badge className="bg-blue-600">PREPARING</Badge>
+                        <span className="font-semibold">Table {order.tableNumber}</span>
+                        <span className="text-sm text-muted-foreground">#{order.id.slice(-4)}</span>
+                      </div>
+                      <div className="text-sm text-muted-foreground">
+                        Started {getTimeAgo(order.timestamp)}
+                      </div>
+                    </div>
+                    <Button
+                      onClick={() => handleStatusUpdate(order.id, 'ready')}
+                      size="sm"
+                      className="bg-green-600 hover:bg-green-700"
+                    >
+                      Mark Ready
+                    </Button>
+                  </div>
+                  
+                  <div className="space-y-1">
+                    {order.items.map((item: any, index: number) => (
+                      <div key={index} className="text-sm flex justify-between">
+                        <span>{item.quantity}x {item.menuItem.name}</span>
+                        <span className="text-muted-foreground">${(item.menuItem.price * item.quantity).toFixed(2)}</span>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        )}
+
+        {/* Ready Orders */}
+        {readyOrders.length > 0 && (
+          <div className="space-y-3">
+            <h3 className="font-medium text-green-700 flex items-center gap-2">
+              <CheckCircle className="w-4 h-4" />
+              Ready for Pickup ({readyOrders.length})
+            </h3>
+            {readyOrders.map(order => (
+              <Card key={order.id} className="border-green-200 bg-green-50/50">
+                <CardContent className="p-4">
+                  <div className="flex justify-between items-start mb-3">
+                    <div>
+                      <div className="flex items-center gap-2 mb-1">
+                        <Badge className="bg-green-600">READY</Badge>
+                        <span className="font-semibold">Table {order.tableNumber}</span>
+                        <span className="text-sm text-muted-foreground">#{order.id.slice(-4)}</span>
+                      </div>
+                      <div className="text-sm text-muted-foreground">
+                        Ready since {getTimeAgo(order.timestamp)}
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-1">
+                    {order.items.map((item: any, index: number) => (
+                      <div key={index} className="text-sm flex justify-between">
+                        <span>{item.quantity}x {item.menuItem.name}</span>
+                        <span className="text-muted-foreground">${(item.menuItem.price * item.quantity).toFixed(2)}</span>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        )}
+
+        {/* Empty State */}
+        {newOrders.length === 0 && preparingOrders.length === 0 && readyOrders.length === 0 && (
+          <Card>
+            <CardContent className="text-center py-12">
+              <ChefHat className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
+              <p className="text-muted-foreground">No active orders in the kitchen</p>
+              <p className="text-sm text-muted-foreground mt-2">
+                New orders will appear here automatically
+              </p>
+            </CardContent>
+          </Card>
+        )}
+      </div>
     </div>
   );
 }

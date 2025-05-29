@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useReducer, ReactNode } from 'react';
 
 // Types
@@ -69,6 +68,8 @@ type AppAction =
   | { type: 'CLEAR_CART' }
   | { type: 'PLACE_ORDER' }
   | { type: 'UPDATE_ORDER_STATUS'; payload: { orderId: string; status: Order['status'] } }
+  | { type: 'MODIFY_ORDER'; payload: { orderId: string; items: OrderItem[] } }
+  | { type: 'COMPLETE_ORDER_PAYMENT'; payload: string }
   | { type: 'ADD_MENU_ITEM'; payload: MenuItem }
   | { type: 'UPDATE_MENU_ITEM'; payload: MenuItem }
   | { type: 'DELETE_MENU_ITEM'; payload: string }
@@ -215,6 +216,42 @@ function appReducer(state: AppState, action: AppAction): AppState {
             ? { ...order, status: action.payload.status }
             : order
         )
+      };
+      
+    case 'MODIFY_ORDER':
+      return {
+        ...state,
+        orders: state.orders.map(order =>
+          order.id === action.payload.orderId
+            ? { 
+                ...order, 
+                items: action.payload.items,
+                total: action.payload.items.reduce((sum, item) => sum + (item.menuItem.price * item.quantity), 0)
+              }
+            : order
+        )
+      };
+      
+    case 'COMPLETE_ORDER_PAYMENT':
+      const updatedOrders = state.orders.map(order =>
+        order.id === action.payload && order.status === 'ready'
+          ? { ...order, status: 'completed' as const }
+          : order
+      );
+      
+      // Update daily sales when order is completed
+      const completedOrder = state.orders.find(order => order.id === action.payload);
+      const newDailySales = completedOrder 
+        ? state.analytics.dailySales + completedOrder.total
+        : state.analytics.dailySales;
+      
+      return {
+        ...state,
+        orders: updatedOrders,
+        analytics: {
+          ...state.analytics,
+          dailySales: newDailySales
+        }
       };
       
     case 'ADD_MENU_ITEM':

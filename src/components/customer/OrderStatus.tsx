@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -7,16 +6,23 @@ import { Progress } from '@/components/ui/progress';
 import { useApp } from '@/contexts/AppContext';
 import { PaymentModal } from './PaymentModal';
 import { FeedbackModal } from './FeedbackModal';
-import { Clock, ChefHat, CheckCircle, Star, CreditCard } from 'lucide-react';
+import { OrderModificationModal } from './OrderModificationModal';
+import { Clock, ChefHat, CheckCircle, Star, CreditCard, Edit } from 'lucide-react';
 
 export function OrderStatus() {
   const { state } = useApp();
   const [selectedOrderForPayment, setSelectedOrderForPayment] = useState<any>(null);
   const [selectedOrderForFeedback, setSelectedOrderForFeedback] = useState<string>('');
+  const [selectedOrderForModification, setSelectedOrderForModification] = useState<any>(null);
 
   const userOrders = state.orders.filter(order => 
     order.tableNumber === state.restaurant.table
   );
+
+  const handlePaymentComplete = (orderId: string) => {
+    // Trigger feedback modal after payment
+    setSelectedOrderForFeedback(orderId);
+  };
 
   const getStatusProgress = (status: string) => {
     switch (status) {
@@ -60,29 +66,31 @@ export function OrderStatus() {
 
   if (userOrders.length === 0) {
     return (
-      <Card>
-        <CardHeader>
-          <CardTitle>Order Status</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="text-center py-12">
-            <ChefHat className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
-            <p className="text-muted-foreground">No orders placed yet.</p>
-            <p className="text-sm text-muted-foreground mt-2">
-              Place an order from our menu to track it here!
-            </p>
-          </div>
-        </CardContent>
-      </Card>
+      <div className="px-4">
+        <Card>
+          <CardHeader>
+            <CardTitle>Order Status</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-center py-12">
+              <ChefHat className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
+              <p className="text-muted-foreground">No orders placed yet.</p>
+              <p className="text-sm text-muted-foreground mt-2">
+                Place an order from our menu to track it here!
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
     );
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 px-4">
       <h3 className="text-xl font-semibold">Your Orders</h3>
       
       {userOrders.map(order => (
-        <Card key={order.id} className="overflow-hidden">
+        <Card key={order.id} className="overflow-hidden shadow-sm">
           <CardHeader className="pb-3">
             <div className="flex justify-between items-start">
               <CardTitle className="text-lg">
@@ -107,7 +115,7 @@ export function OrderStatus() {
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   {getStatusIcon(order.status)}
-                  <span className="font-medium">{getStatusMessage(order.status)}</span>
+                  <span className="font-medium text-sm">{getStatusMessage(order.status)}</span>
                 </div>
                 <span className="text-sm text-muted-foreground">
                   ETA: {getEstimatedTime(order.status)}
@@ -130,6 +138,19 @@ export function OrderStatus() {
                 <span>${order.total.toFixed(2)}</span>
               </div>
             </div>
+
+            {/* Modify Order Button - Only for new orders */}
+            {order.status === 'new' && (
+              <Button
+                onClick={() => setSelectedOrderForModification(order)}
+                variant="outline"
+                className="w-full"
+                size="sm"
+              >
+                <Edit className="w-4 h-4 mr-2" />
+                Modify Order
+              </Button>
+            )}
 
             {/* Ambiance Section for preparing/ready orders */}
             {(order.status === 'preparing' || order.status === 'ready') && (
@@ -169,19 +190,7 @@ export function OrderStatus() {
               </Button>
             )}
 
-            {/* Feedback Button for completed orders */}
-            {order.status === 'completed' && !order.customerFeedback && (
-              <Button
-                onClick={() => setSelectedOrderForFeedback(order.id)}
-                variant="outline"
-                className="w-full"
-              >
-                <Star className="w-4 h-4 mr-2" />
-                Share Your Experience
-              </Button>
-            )}
-
-            {/* Feedback Display for completed orders with feedback */}
+            {/* Feedback Display for completed orders */}
             {order.status === 'completed' && order.customerFeedback && (
               <Card className="bg-sage-green/10 border-sage-green/20">
                 <CardContent className="p-3">
@@ -235,6 +244,7 @@ export function OrderStatus() {
           open={!!selectedOrderForPayment}
           onOpenChange={(open) => !open && setSelectedOrderForPayment(null)}
           order={selectedOrderForPayment}
+          onPaymentComplete={handlePaymentComplete}
         />
       )}
 
@@ -243,6 +253,14 @@ export function OrderStatus() {
           open={!!selectedOrderForFeedback}
           onOpenChange={(open) => !open && setSelectedOrderForFeedback('')}
           orderId={selectedOrderForFeedback}
+        />
+      )}
+
+      {selectedOrderForModification && (
+        <OrderModificationModal
+          open={!!selectedOrderForModification}
+          onOpenChange={(open) => !open && setSelectedOrderForModification(null)}
+          order={selectedOrderForModification}
         />
       )}
     </div>
