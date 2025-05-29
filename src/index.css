@@ -5,90 +5,83 @@
 
 @layer base {
   :root {
-    --background: 45 23% 97%;
-    --foreground: 25 15% 15%;
+    --background: 45 35% 97%;
+    --foreground: 210 40% 15%;
 
-    --card: 45 23% 97%;
-    --card-foreground: 25 15% 15%;
+    --card: 45 35% 97%;
+    --card-foreground: 210 40% 15%;
 
-    --popover: 45 23% 97%;
-    --popover-foreground: 25 15% 15%;
+    --popover: 45 35% 97%;
+    --popover-foreground: 210 40% 15%;
 
-    --primary: 25 40% 35%;
-    --primary-foreground: 45 23% 97%;
+    --primary: 210 50% 25%;
+    --primary-foreground: 45 35% 97%;
 
-    --secondary: 25 15% 85%;
-    --secondary-foreground: 25 40% 25%;
+    --secondary: 197 35% 65%;
+    --secondary-foreground: 210 40% 15%;
 
-    --muted: 25 15% 90%;
-    --muted-foreground: 25 15% 45%;
+    --muted: 197 20% 85%;
+    --muted-foreground: 210 20% 45%;
 
-    --accent: 35 45% 75%;
-    --accent-foreground: 25 40% 25%;
+    --accent: 25 95% 60%;
+    --accent-foreground: 210 40% 15%;
 
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 98%;
 
-    --border: 25 15% 85%;
-    --input: 25 15% 85%;
-    --ring: 25 40% 35%;
+    --border: 197 20% 80%;
+    --input: 197 20% 80%;
+    --ring: 210 50% 25%;
 
     --radius: 0.75rem;
 
-    --sidebar-background: 25 15% 95%;
-    --sidebar-foreground: 25 15% 25%;
-    --sidebar-primary: 25 40% 35%;
-    --sidebar-primary-foreground: 45 23% 97%;
-    --sidebar-accent: 25 15% 90%;
-    --sidebar-accent-foreground: 25 40% 25%;
-    --sidebar-border: 25 15% 85%;
-    --sidebar-ring: 25 40% 35%;
-
-    /* Custom food-themed colors */
-    --sage-green: 95 25% 65%;
-    --warm-orange: 25 85% 70%;
-    --cream: 45 40% 92%;
-    --earth-brown: 25 40% 35%;
-    --soft-red: 10 70% 75%;
+    --sidebar-background: 197 20% 92%;
+    --sidebar-foreground: 210 40% 20%;
+    --sidebar-primary: 210 50% 25%;
+    --sidebar-primary-foreground: 45 35% 97%;
+    --sidebar-accent: 197 20% 85%;
+    --sidebar-accent-foreground: 210 40% 20%;
+    --sidebar-border: 197 20% 80%;
+    --sidebar-ring: 210 50% 25%;
   }
 
   .dark {
-    --background: 25 15% 8%;
-    --foreground: 45 23% 92%;
+    --background: 210 40% 8%;
+    --foreground: 45 35% 92%;
 
-    --card: 25 15% 8%;
-    --card-foreground: 45 23% 92%;
+    --card: 210 40% 8%;
+    --card-foreground: 45 35% 92%;
 
-    --popover: 25 15% 8%;
-    --popover-foreground: 45 23% 92%;
+    --popover: 210 40% 8%;
+    --popover-foreground: 45 35% 92%;
 
-    --primary: 45 23% 92%;
-    --primary-foreground: 25 15% 8%;
+    --primary: 45 35% 92%;
+    --primary-foreground: 210 40% 8%;
 
-    --secondary: 25 15% 15%;
-    --secondary-foreground: 45 23% 92%;
+    --secondary: 210 20% 15%;
+    --secondary-foreground: 45 35% 92%;
 
-    --muted: 25 15% 15%;
-    --muted-foreground: 25 15% 65%;
+    --muted: 210 20% 15%;
+    --muted-foreground: 210 20% 65%;
 
-    --accent: 25 15% 15%;
-    --accent-foreground: 45 23% 92%;
+    --accent: 210 20% 15%;
+    --accent-foreground: 45 35% 92%;
 
     --destructive: 0 62% 30%;
-    --destructive-foreground: 45 23% 92%;
+    --destructive-foreground: 45 35% 92%;
 
-    --border: 25 15% 15%;
-    --input: 25 15% 15%;
-    --ring: 45 23% 82%;
+    --border: 210 20% 15%;
+    --input: 210 20% 15%;
+    --ring: 45 35% 82%;
 
-    --sidebar-background: 25 15% 10%;
-    --sidebar-foreground: 45 23% 90%;
-    --sidebar-primary: 35 45% 55%;
-    --sidebar-primary-foreground: 25 15% 8%;
-    --sidebar-accent: 25 15% 15%;
-    --sidebar-accent-foreground: 45 23% 90%;
-    --sidebar-border: 25 15% 15%;
-    --sidebar-ring: 35 45% 55%;
+    --sidebar-background: 210 40% 10%;
+    --sidebar-foreground: 45 35% 90%;
+    --sidebar-primary: 25 95% 55%;
+    --sidebar-primary-foreground: 210 40% 8%;
+    --sidebar-accent: 210 20% 15%;
+    --sidebar-accent-foreground: 45 35% 90%;
+    --sidebar-border: 210 20% 15%;
+    --sidebar-ring: 25 95% 55%;
   }
 }
 
@@ -103,39 +96,63 @@
 }
 
 @layer utilities {
-  .bg-sage-green {
-    background-color: hsl(var(--sage-green));
+  .bg-charcoal {
+    background-color: #233d4d;
   }
   
-  .bg-warm-orange {
-    background-color: hsl(var(--warm-orange));
+  .bg-pumpkin {
+    background-color: #fe7f2d;
   }
   
-  .bg-cream {
-    background-color: hsl(var(--cream));
+  .bg-sunglow {
+    background-color: #fcca46;
   }
   
-  .bg-earth-brown {
-    background-color: hsl(var(--earth-brown));
+  .bg-olivine {
+    background-color: #a1c181;
   }
   
-  .bg-soft-red {
-    background-color: hsl(var(--soft-red));
+  .bg-zomp {
+    background-color: #619b8a;
   }
   
-  .text-sage-green {
-    color: hsl(var(--sage-green));
+  .text-charcoal {
+    color: #233d4d;
   }
   
-  .text-warm-orange {
-    color: hsl(var(--warm-orange));
+  .text-pumpkin {
+    color: #fe7f2d;
   }
   
-  .text-earth-brown {
-    color: hsl(var(--earth-brown));
+  .text-sunglow {
+    color: #fcca46;
   }
   
-  .border-sage-green {
-    border-color: hsl(var(--sage-green));
+  .text-olivine {
+    color: #a1c181;
+  }
+  
+  .text-zomp {
+    color: #619b8a;
+  }
+  
+  .border-charcoal {
+    border-color: #233d4d;
+  }
+  
+  .border-pumpkin {
+    border-color: #fe7f2d;
+  }
+  
+  .border-sunglow {
+    border-color: #fcca46;
+  }
+  
+  .border-olivine {
+    border-color: #a1c181;
+  }
+  
+  .border-zomp {
+    border-color: #619b8a;
   }
 }

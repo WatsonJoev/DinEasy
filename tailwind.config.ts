@@ -65,6 +65,66 @@ export default {
 					'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
+				},
+				charcoal: {
+					DEFAULT: '#233d4d',
+					100: '#070c0f',
+					200: '#0e181f',
+					300: '#15252e',
+					400: '#1c313d',
+					500: '#233d4d',
+					600: '#3c6883',
+					700: '#5c92b4',
+					800: '#92b6cd',
+					900: '#c9dbe6'
+				},
+				pumpkin: {
+					DEFAULT: '#fe7f2d',
+					100: '#3c1800',
+					200: '#783001',
+					300: '#b44801',
+					400: '#f06101',
+					500: '#fe7f2d',
+					600: '#fe9b59',
+					700: '#feb482',
+					800: '#ffcdac',
+					900: '#ffe6d5'
+				},
+				sunglow: {
+					DEFAULT: '#fcca46',
+					100: '#3f2f01',
+					200: '#7f5d02',
+					300: '#be8c03',
+					400: '#fbba06',
+					500: '#fcca46',
+					600: '#fdd66a',
+					700: '#fde08f',
+					800: '#feeab5',
+					900: '#fef5da'
+				},
+				olivine: {
+					DEFAULT: '#a1c181',
+					100: '#202b15',
+					200: '#40562a',
+					300: '#608140',
+					400: '#81ac56',
+					500: '#a1c181',
+					600: '#b4cd9a',
+					700: '#c6dab3',
+					800: '#d9e6cc',
+					900: '#ecf3e6'
+				},
+				zomp: {
+					DEFAULT: '#619b8a',
+					100: '#131f1b',
+					200: '#263d37',
+					300: '#3a5c52',
+					400: '#4d7b6d',
+					500: '#619b8a',
+					600: '#7fafa1',
+					700: '#9fc3b8',
+					800: '#bfd7d0',
+					900: '#dfebe7'
 				}
 			},
 			borderRadius: {
