@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useReducer, ReactNode } from 'react';
 
 // Types
@@ -9,11 +10,18 @@ export interface MenuItem {
   category: string;
   image: string;
   inStock: boolean;
+  foodType: 'veg' | 'non-veg';
+  recommended?: boolean;
+  spiceLevel?: 'mild' | 'medium' | 'hot';
+  preparationTime: number; // in minutes
+  availableFrom?: string; // time in HH:mm format
+  availableTo?: string; // time in HH:mm format
 }
 
 export interface OrderItem {
   menuItem: MenuItem;
   quantity: number;
+  orderType: 'dine-in' | 'takeaway';
 }
 
 export interface Order {
@@ -29,12 +37,16 @@ export interface Order {
   };
 }
 
+export interface RestaurantSettings {
+  name: string;
+  table: string;
+  currency: string;
+  taxRate: number; // percentage
+}
+
 export interface AppState {
   // Demo data
-  restaurant: {
-    name: string;
-    table: string;
-  };
+  restaurant: RestaurantSettings;
   
   // Menu
   menuItems: MenuItem[];
@@ -52,6 +64,9 @@ export interface AppState {
     dailySales: number;
     weeklySales: number;
     monthlySales: number;
+    completedToday: number;
+    avgOrderValue: number;
+    popularItems: { name: string; count: number }[];
   };
   
   // Content
@@ -63,71 +78,101 @@ export interface AppState {
 type AppAction =
   | { type: 'SET_USER_TYPE'; payload: 'customer' | 'chef' | 'admin' | null }
   | { type: 'SET_AUTHENTICATED'; payload: boolean }
-  | { type: 'ADD_TO_CART'; payload: { menuItem: MenuItem; quantity: number } }
+  | { type: 'ADD_TO_CART'; payload: { menuItem: MenuItem; quantity: number; orderType: 'dine-in' | 'takeaway' } }
   | { type: 'REMOVE_FROM_CART'; payload: string }
   | { type: 'CLEAR_CART' }
   | { type: 'PLACE_ORDER' }
   | { type: 'UPDATE_ORDER_STATUS'; payload: { orderId: string; status: Order['status'] } }
   | { type: 'MODIFY_ORDER'; payload: { orderId: string; items: OrderItem[] } }
+  | { type: 'ADD_TO_EXISTING_ORDER'; payload: { orderId: string; items: OrderItem[] } }
   | { type: 'COMPLETE_ORDER_PAYMENT'; payload: string }
   | { type: 'ADD_MENU_ITEM'; payload: MenuItem }
   | { type: 'UPDATE_MENU_ITEM'; payload: MenuItem }
   | { type: 'DELETE_MENU_ITEM'; payload: string }
   | { type: 'TOGGLE_STOCK'; payload: string }
+  | { type: 'UPDATE_RESTAURANT_SETTINGS'; payload: RestaurantSettings }
   | { type: 'ADD_FEEDBACK'; payload: { orderId: string; rating: number; comment: string } };
 
 // Initial state with demo data
 const initialState: AppState = {
   restaurant: {
-    name: "Demo Restaurant",
-    table: "Table 5"
+    name: "South Indian Delight",
+    table: "Table 5",
+    currency: "₹",
+    taxRate: 18
   },
   
   menuItems: [
     {
       id: '1',
-      name: 'Margherita Pizza',
-      description: 'Fresh tomatoes, mozzarella cheese, and basil on a crispy crust',
-      price: 16.99,
-      category: 'Pizza',
-      image: 'https://images.unsplash.com/photo-1574071318508-1cdbab80d002?w=400',
-      inStock: true
+      name: 'Masala Dosa',
+      description: 'Crispy fermented crepe filled with spiced potato curry',
+      price: 120,
+      category: 'South Indian',
+      image: 'https://images.unsplash.com/photo-1630383249896-424e482df921?w=400',
+      inStock: true,
+      foodType: 'veg',
+      recommended: true,
+      spiceLevel: 'medium',
+      preparationTime: 15,
+      availableFrom: '06:00',
+      availableTo: '22:00'
     },
     {
       id: '2',
-      name: 'Caesar Salad',
-      description: 'Crisp romaine lettuce with parmesan cheese and croutons',
-      price: 12.99,
-      category: 'Salads',
-      image: 'https://images.unsplash.com/photo-1546793665-c74683f339c1?w=400',
-      inStock: true
+      name: 'Chicken Biryani',
+      description: 'Aromatic basmati rice with tender chicken pieces and exotic spices',
+      price: 280,
+      category: 'Biryani',
+      image: 'https://images.unsplash.com/photo-1563379091339-03246963d27c?w=400',
+      inStock: true,
+      foodType: 'non-veg',
+      recommended: true,
+      spiceLevel: 'hot',
+      preparationTime: 25,
+      availableFrom: '11:00',
+      availableTo: '23:00'
     },
     {
       id: '3',
-      name: 'Grilled Salmon',
-      description: 'Fresh Atlantic salmon with seasonal vegetables',
-      price: 24.99,
-      category: 'Main Course',
-      image: 'https://images.unsplash.com/photo-1467003909585-2f8a72700288?w=400',
-      inStock: true
+      name: 'Sambar Idli',
+      description: 'Steamed rice cakes served with lentil curry and coconut chutney',
+      price: 80,
+      category: 'South Indian',
+      image: 'https://images.unsplash.com/photo-1606491956689-2ea866880c84?w=400',
+      inStock: true,
+      foodType: 'veg',
+      spiceLevel: 'mild',
+      preparationTime: 10,
+      availableFrom: '06:00',
+      availableTo: '11:00'
     },
     {
       id: '4',
-      name: 'Chocolate Lava Cake',
-      description: 'Warm chocolate cake with molten center and vanilla ice cream',
-      price: 8.99,
+      name: 'Rava Kesari',
+      description: 'Sweet semolina dessert garnished with nuts and raisins',
+      price: 60,
       category: 'Desserts',
-      image: 'https://images.unsplash.com/photo-1606313564200-e75d5e30476c?w=400',
-      inStock: false
+      image: 'https://images.unsplash.com/photo-1571877227200-a0d98ea607e9?w=400',
+      inStock: false,
+      foodType: 'veg',
+      preparationTime: 8,
+      availableFrom: '12:00',
+      availableTo: '22:00'
     },
     {
       id: '5',
-      name: 'Pasta Carbonara',
-      description: 'Creamy pasta with bacon, eggs, and parmesan cheese',
-      price: 18.99,
-      category: 'Pasta',
-      image: 'https://images.unsplash.com/photo-1621996346565-e3dbc353d2e5?w=400',
-      inStock: true
+      name: 'Fish Curry',
+      description: 'South Indian style fish curry with coconut and tamarind',
+      price: 320,
+      category: 'Main Course',
+      image: 'https://images.unsplash.com/photo-1585937421612-70a008356fbe?w=400',
+      inStock: true,
+      foodType: 'non-veg',
+      spiceLevel: 'hot',
+      preparationTime: 20,
+      availableFrom: '12:00',
+      availableTo: '22:00'
     }
   ],
   
@@ -137,23 +182,46 @@ const initialState: AppState = {
   isAuthenticated: false,
   
   analytics: {
-    dailySales: 145.50,
-    weeklySales: 1205.75,
-    monthlySales: 4890.25
+    dailySales: 2450.50,
+    weeklySales: 18205.75,
+    monthlySales: 78490.25,
+    completedToday: 12,
+    avgOrderValue: 204.20,
+    popularItems: [
+      { name: 'Masala Dosa', count: 25 },
+      { name: 'Chicken Biryani', count: 18 },
+      { name: 'Fish Curry', count: 12 }
+    ]
   },
   
   topDishes: [
-    'Margherita Pizza',
-    'Grilled Salmon',
-    'Pasta Carbonara',
-    'Caesar Salad',
-    'Chocolate Lava Cake'
+    'Masala Dosa',
+    'Chicken Biryani',
+    'Fish Curry',
+    'Sambar Idli',
+    'Rava Kesari'
   ],
   
   youtubeVideos: [
-    'dQw4w9WgXcQ', // Demo video IDs
+    'dQw4w9WgXcQ',
     'kJQP7kiw5Fk'
   ]
+};
+
+// Helper function to check if menu item is available at current time
+const isMenuItemAvailable = (item: MenuItem): boolean => {
+  if (!item.availableFrom || !item.availableTo) return true;
+  
+  const now = new Date();
+  const currentTime = now.getHours() * 60 + now.getMinutes();
+  
+  const [fromHours, fromMinutes] = item.availableFrom.split(':').map(Number);
+  const [toHours, toMinutes] = item.availableTo.split(':').map(Number);
+  
+  const fromTime = fromHours * 60 + fromMinutes;
+  const toTime = toHours * 60 + toMinutes;
+  
+  return currentTime >= fromTime && currentTime <= toTime;
 };
 
 // Reducer
@@ -167,7 +235,7 @@ function appReducer(state: AppState, action: AppAction): AppState {
       
     case 'ADD_TO_CART':
       const existingItemIndex = state.currentOrder.findIndex(
-        item => item.menuItem.id === action.payload.menuItem.id
+        item => item.menuItem.id === action.payload.menuItem.id && item.orderType === action.payload.orderType
       );
       
       if (existingItemIndex >= 0) {
@@ -177,7 +245,11 @@ function appReducer(state: AppState, action: AppAction): AppState {
       } else {
         return {
           ...state,
-          currentOrder: [...state.currentOrder, action.payload]
+          currentOrder: [...state.currentOrder, {
+            menuItem: action.payload.menuItem,
+            quantity: action.payload.quantity,
+            orderType: action.payload.orderType
+          }]
         };
       }
       
@@ -231,6 +303,20 @@ function appReducer(state: AppState, action: AppAction): AppState {
             : order
         )
       };
+
+    case 'ADD_TO_EXISTING_ORDER':
+      return {
+        ...state,
+        orders: state.orders.map(order =>
+          order.id === action.payload.orderId
+            ? { 
+                ...order, 
+                items: [...order.items, ...action.payload.items],
+                total: [...order.items, ...action.payload.items].reduce((sum, item) => sum + (item.menuItem.price * item.quantity), 0)
+              }
+            : order
+        )
+      };
       
     case 'COMPLETE_ORDER_PAYMENT':
       const updatedOrders = state.orders.map(order =>
@@ -239,18 +325,20 @@ function appReducer(state: AppState, action: AppAction): AppState {
           : order
       );
       
-      // Update daily sales when order is completed
       const completedOrder = state.orders.find(order => order.id === action.payload);
       const newDailySales = completedOrder 
         ? state.analytics.dailySales + completedOrder.total
         : state.analytics.dailySales;
+      
+      const newCompletedToday = completedOrder ? state.analytics.completedToday + 1 : state.analytics.completedToday;
       
       return {
         ...state,
         orders: updatedOrders,
         analytics: {
           ...state.analytics,
-          dailySales: newDailySales
+          dailySales: newDailySales,
+          completedToday: newCompletedToday
         }
       };
       
@@ -281,6 +369,12 @@ function appReducer(state: AppState, action: AppAction): AppState {
           item.id === action.payload ? { ...item, inStock: !item.inStock } : item
         )
       };
+
+    case 'UPDATE_RESTAURANT_SETTINGS':
+      return {
+        ...state,
+        restaurant: action.payload
+      };
       
     case 'ADD_FEEDBACK':
       return {
@@ -307,6 +401,7 @@ function appReducer(state: AppState, action: AppAction): AppState {
 const AppContext = createContext<{
   state: AppState;
   dispatch: React.Dispatch<AppAction>;
+  isMenuItemAvailable: (item: MenuItem) => boolean;
 } | null>(null);
 
 // Provider
@@ -314,7 +409,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [state, dispatch] = useReducer(appReducer, initialState);
   
   return (
-    <AppContext.Provider value={{ state, dispatch }}>
+    <AppContext.Provider value={{ state, dispatch, isMenuItemAvailable }}>
       {children}
     </AppContext.Provider>
   );

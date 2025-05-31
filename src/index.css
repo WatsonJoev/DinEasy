@@ -5,90 +5,48 @@
 
 @layer base {
   :root {
-    --background: 45 23% 97%;
-    --foreground: 25 15% 15%;
-
-    --card: 45 23% 97%;
-    --card-foreground: 25 15% 15%;
-
-    --popover: 45 23% 97%;
-    --popover-foreground: 25 15% 15%;
-
-    --primary: 25 40% 35%;
-    --primary-foreground: 45 23% 97%;
-
-    --secondary: 25 15% 85%;
-    --secondary-foreground: 25 40% 25%;
-
-    --muted: 25 15% 90%;
-    --muted-foreground: 25 15% 45%;
-
-    --accent: 35 45% 75%;
-    --accent-foreground: 25 40% 25%;
-
-    --destructive: 0 84% 60%;
-    --destructive-foreground: 0 0% 98%;
-
-    --border: 25 15% 85%;
-    --input: 25 15% 85%;
-    --ring: 25 40% 35%;
-
+    --background: 210 20% 98%;
+    --foreground: 200 50% 3%;
+    --card: 210 20% 98%;
+    --card-foreground: 200 50% 3%;
+    --popover: 210 20% 98%;
+    --popover-foreground: 200 50% 3%;
+    --primary: 200 100% 28%;
+    --primary-foreground: 210 20% 98%;
+    --secondary: 200 10% 91%;
+    --secondary-foreground: 200 30% 18%;
+    --muted: 200 10% 95%;
+    --muted-foreground: 200 30% 38%;
+    --accent: 200 15% 92%;
+    --accent-foreground: 200 30% 18%;
+    --destructive: 0 65% 51%;
+    --destructive-foreground: 210 20% 98%;
+    --border: 200 20% 82%;
+    --input: 200 20% 82%;
+    --ring: 200 100% 28%;
     --radius: 0.75rem;
-
-    --sidebar-background: 25 15% 95%;
-    --sidebar-foreground: 25 15% 25%;
-    --sidebar-primary: 25 40% 35%;
-    --sidebar-primary-foreground: 45 23% 97%;
-    --sidebar-accent: 25 15% 90%;
-    --sidebar-accent-foreground: 25 40% 25%;
-    --sidebar-border: 25 15% 85%;
-    --sidebar-ring: 25 40% 35%;
-
-    /* Custom food-themed colors */
-    --sage-green: 95 25% 65%;
-    --warm-orange: 25 85% 70%;
-    --cream: 45 40% 92%;
-    --earth-brown: 25 40% 35%;
-    --soft-red: 10 70% 75%;
   }
 
   .dark {
-    --background: 25 15% 8%;
-    --foreground: 45 23% 92%;
-
-    --card: 25 15% 8%;
-    --card-foreground: 45 23% 92%;
-
-    --popover: 25 15% 8%;
-    --popover-foreground: 45 23% 92%;
-
-    --primary: 45 23% 92%;
-    --primary-foreground: 25 15% 8%;
-
-    --secondary: 25 15% 15%;
-    --secondary-foreground: 45 23% 92%;
-
-    --muted: 25 15% 15%;
-    --muted-foreground: 25 15% 65%;
-
-    --accent: 25 15% 15%;
-    --accent-foreground: 45 23% 92%;
-
-    --destructive: 0 62% 30%;
-    --destructive-foreground: 45 23% 92%;
-
-    --border: 25 15% 15%;
-    --input: 25 15% 15%;
-    --ring: 45 23% 82%;
-
-    --sidebar-background: 25 15% 10%;
-    --sidebar-foreground: 45 23% 90%;
-    --sidebar-primary: 35 45% 55%;
-    --sidebar-primary-foreground: 25 15% 8%;
-    --sidebar-accent: 25 15% 15%;
-    --sidebar-accent-foreground: 45 23% 90%;
-    --sidebar-border: 25 15% 15%;
-    --sidebar-ring: 35 45% 55%;
+    --background: 200 50% 3%;
+    --foreground: 210 20% 98%;
+    --card: 200 50% 3%;
+    --card-foreground: 210 20% 98%;
+    --popover: 200 50% 3%;
+    --popover-foreground: 210 20% 98%;
+    --primary: 210 20% 98%;
+    --primary-foreground: 200 50% 3%;
+    --secondary: 200 30% 8%;
+    --secondary-foreground: 210 20% 98%;
+    --muted: 200 30% 8%;
+    --muted-foreground: 200 20% 63%;
+    --accent: 200 30% 8%;
+    --accent-foreground: 210 20% 98%;
+    --destructive: 0 65% 51%;
+    --destructive-foreground: 210 20% 98%;
+    --border: 200 30% 8%;
+    --input: 200 30% 8%;
+    --ring: 210 20% 98%;
   }
 }
 
@@ -99,43 +57,5 @@
 
   body {
     @apply bg-background text-foreground font-sans;
-  }
-}
-
-@layer utilities {
-  .bg-sage-green {
-    background-color: hsl(var(--sage-green));
-  }
-  
-  .bg-warm-orange {
-    background-color: hsl(var(--warm-orange));
-  }
-  
-  .bg-cream {
-    background-color: hsl(var(--cream));
-  }
-  
-  .bg-earth-brown {
-    background-color: hsl(var(--earth-brown));
-  }
-  
-  .bg-soft-red {
-    background-color: hsl(var(--soft-red));
-  }
-  
-  .text-sage-green {
-    color: hsl(var(--sage-green));
-  }
-  
-  .text-warm-orange {
-    color: hsl(var(--warm-orange));
-  }
-  
-  .text-earth-brown {
-    color: hsl(var(--earth-brown));
-  }
-  
-  .border-sage-green {
-    border-color: hsl(var(--sage-green));
   }
 }
