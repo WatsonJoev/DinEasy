@@ -1,8 +1,7 @@
-
 import React, { createContext, useContext, useReducer, ReactNode } from 'react';
 
-// Types
-export interface MenuItem {
+// Define the MenuItem interface
+interface MenuItem {
   id: string;
   name: string;
   description: string;
@@ -11,105 +10,117 @@ export interface MenuItem {
   image: string;
   inStock: boolean;
   foodType: 'veg' | 'non-veg';
-  recommended?: boolean;
-  spiceLevel?: 'mild' | 'medium' | 'hot';
-  preparationTime: number; // in minutes
-  availableFrom?: string; // time in HH:mm format
-  availableTo?: string; // time in HH:mm format
+  recommended: boolean;
+	spiceLevel: 'mild' | 'medium' | 'hot';
+  preparationTime: number;
+  availableFrom?: string;
+  availableTo?: string;
 }
 
-export interface OrderItem {
+// Define the OrderItem interface
+interface OrderItem {
+  id: string;
   menuItem: MenuItem;
   quantity: number;
   orderType: 'dine-in' | 'takeaway';
+  spiceLevel: 'mild' | 'medium' | 'hot';
+  specialInstructions?: string;
+  customizations?: string[];
+  timestamp: string;
 }
 
-export interface Order {
+// Define the Order interface
+interface Order {
   id: string;
   tableNumber: string;
   items: OrderItem[];
-  status: 'new' | 'preparing' | 'ready' | 'completed';
   total: number;
-  timestamp: Date;
+  timestamp: string;
+  status: 'new' | 'preparing' | 'ready' | 'completed';
   customerFeedback?: {
     rating: number;
     comment: string;
   };
+  paymentDetails?: {
+    method: 'cash' | 'upi' | null;
+    subtotal: number;
+    tax: number;
+    tip: number;
+    total: number;
+    serviceRating: number;
+  };
 }
 
-export interface RestaurantSettings {
-  name: string;
-  table: string;
-  currency: string;
-  taxRate: number; // percentage
+// Extended interfaces for new features
+interface CustomerLoyalty {
+  points: number;
+  tier: 'Bronze' | 'Silver' | 'Gold' | 'Platinum';
+  totalSpent: number;
+  rewardsRedeemed: number;
 }
 
-export interface AppState {
-  // Demo data
-  restaurant: RestaurantSettings;
-  
-  // Menu
-  menuItems: MenuItem[];
-  
-  // Orders
-  orders: Order[];
-  currentOrder: OrderItem[];
-  
-  // User context
+interface AppState {
   userType: 'customer' | 'chef' | 'admin' | null;
   isAuthenticated: boolean;
-  
-  // Analytics
-  analytics: {
-    dailySales: number;
-    weeklySales: number;
-    monthlySales: number;
-    completedToday: number;
-    avgOrderValue: number;
-    popularItems: { name: string; count: number }[];
+  restaurant: {
+    name: string;
+    table: string;
+    currency: string;
+    taxRate: number;
   };
-  
-  // Content
-  topDishes: string[];
+  menuItems: MenuItem[];
+  currentOrder: OrderItem[];
+  orders: Order[];
+  inventory: Record<string, any>;
+  customerLoyalty: CustomerLoyalty;
   youtubeVideos: string[];
+  topDishes: string[];
 }
 
-// Actions
-type AppAction =
-  | { type: 'SET_USER_TYPE'; payload: 'customer' | 'chef' | 'admin' | null }
-  | { type: 'SET_AUTHENTICATED'; payload: boolean }
-  | { type: 'ADD_TO_CART'; payload: { menuItem: MenuItem; quantity: number; orderType: 'dine-in' | 'takeaway' } }
-  | { type: 'REMOVE_FROM_CART'; payload: string }
-  | { type: 'CLEAR_CART' }
-  | { type: 'PLACE_ORDER' }
-  | { type: 'UPDATE_ORDER_STATUS'; payload: { orderId: string; status: Order['status'] } }
-  | { type: 'MODIFY_ORDER'; payload: { orderId: string; items: OrderItem[] } }
-  | { type: 'ADD_TO_EXISTING_ORDER'; payload: { orderId: string; items: OrderItem[] } }
-  | { type: 'COMPLETE_ORDER_PAYMENT'; payload: string }
-  | { type: 'ADD_MENU_ITEM'; payload: MenuItem }
-  | { type: 'UPDATE_MENU_ITEM'; payload: MenuItem }
-  | { type: 'DELETE_MENU_ITEM'; payload: string }
-  | { type: 'TOGGLE_STOCK'; payload: string }
-  | { type: 'UPDATE_RESTAURANT_SETTINGS'; payload: RestaurantSettings }
-  | { type: 'ADD_FEEDBACK'; payload: { orderId: string; rating: number; comment: string } };
+// Define action types
+type ActionType =
+  | 'SET_USER_TYPE'
+  | 'SET_AUTHENTICATED'
+  | 'UPDATE_RESTAURANT_SETTINGS'
+  | 'ADD_TO_CART'
+  | 'REMOVE_FROM_CART'
+  | 'UPDATE_CART_ITEM'
+  | 'CLEAR_CART'
+  | 'PLACE_ORDER'
+  | 'UPDATE_ORDER_STATUS'
+  | 'ADD_MENU_ITEM'
+  | 'UPDATE_MENU_ITEM'
+  | 'DELETE_MENU_ITEM'
+  | 'TOGGLE_STOCK'
+  | 'UPDATE_INVENTORY'
+  | 'REDEEM_LOYALTY_REWARD'
+  | 'ADD_LOYALTY_POINTS'
+  | 'COMPLETE_ORDER_PAYMENT';
 
-// Initial state with demo data
+// Define action interface
+interface Action {
+  type: ActionType;
+  payload?: any;
+}
+
+// Enhanced initial state
 const initialState: AppState = {
+  userType: null,
+  isAuthenticated: false,
   restaurant: {
-    name: "South Indian Delight",
-    table: "Table 5",
+    name: "Saravana Bhavan",
+    table: "T-001",
     currency: "₹",
     taxRate: 18
   },
-  
   menuItems: [
     {
       id: '1',
       name: 'Masala Dosa',
-      description: 'Crispy fermented crepe filled with spiced potato curry',
+      description: 'Crispy rice crepe filled with spiced potato curry, served with sambar and chutney',
       price: 120,
       category: 'South Indian',
-      image: 'https://images.unsplash.com/photo-1630383249896-424e482df921?w=400',
+      image: 'https://images.unsplash.com/photo-1630851846397-bfd13737f5a4?w=400',
       inStock: true,
       foodType: 'veg',
       recommended: true,
@@ -120,166 +131,158 @@ const initialState: AppState = {
     },
     {
       id: '2',
-      name: 'Chicken Biryani',
-      description: 'Aromatic basmati rice with tender chicken pieces and exotic spices',
+      name: 'Butter Chicken',
+      description: 'Tender chicken in rich, creamy tomato-based curry with aromatic spices',
       price: 280,
-      category: 'Biryani',
-      image: 'https://images.unsplash.com/photo-1563379091339-03246963d27c?w=400',
+      category: 'North Indian',
+      image: 'https://images.unsplash.com/photo-1603894584373-5ac82b2ae398?w=400',
       inStock: true,
       foodType: 'non-veg',
       recommended: true,
-      spiceLevel: 'hot',
+      spiceLevel: 'medium',
       preparationTime: 25,
       availableFrom: '11:00',
       availableTo: '23:00'
     },
     {
       id: '3',
-      name: 'Sambar Idli',
-      description: 'Steamed rice cakes served with lentil curry and coconut chutney',
-      price: 80,
-      category: 'South Indian',
-      image: 'https://images.unsplash.com/photo-1606491956689-2ea866880c84?w=400',
+      name: 'Paneer Tikka',
+      description: 'Marinated cottage cheese cubes grilled to perfection with bell peppers and onions',
+      price: 240,
+      category: 'Appetizers',
+      image: 'https://images.unsplash.com/photo-1599487488170-d11ec9c172f0?w=400',
       inStock: true,
       foodType: 'veg',
+      recommended: false,
       spiceLevel: 'mild',
-      preparationTime: 10,
-      availableFrom: '06:00',
-      availableTo: '11:00'
+      preparationTime: 20,
+      availableFrom: '12:00',
+      availableTo: '23:00'
     },
     {
       id: '4',
-      name: 'Rava Kesari',
-      description: 'Sweet semolina dessert garnished with nuts and raisins',
-      price: 60,
-      category: 'Desserts',
-      image: 'https://images.unsplash.com/photo-1571877227200-a0d98ea607e9?w=400',
-      inStock: false,
-      foodType: 'veg',
-      preparationTime: 8,
+      name: 'Biryani',
+      description: 'Fragrant basmati rice layered with tender meat/vegetables and aromatic spices',
+      price: 320,
+      category: 'Rice Dishes',
+      image: 'https://images.unsplash.com/photo-1563379091339-03246963d51a?w=400',
+      inStock: true,
+      foodType: 'non-veg',
+      recommended: true,
+      spiceLevel: 'hot',
+      preparationTime: 35,
       availableFrom: '12:00',
       availableTo: '22:00'
     },
     {
       id: '5',
-      name: 'Fish Curry',
-      description: 'South Indian style fish curry with coconut and tamarind',
-      price: 320,
-      category: 'Main Course',
-      image: 'https://images.unsplash.com/photo-1585937421612-70a008356fbe?w=400',
+      name: 'Gulab Jamun',
+      description: 'Soft, spongy milk dumplings soaked in rose-flavored sugar syrup',
+      price: 80,
+      category: 'Desserts',
+      image: 'https://images.unsplash.com/photo-1571115764595-644a1f56a55c?w=400',
       inStock: true,
-      foodType: 'non-veg',
-      spiceLevel: 'hot',
-      preparationTime: 20,
-      availableFrom: '12:00',
-      availableTo: '22:00'
+      foodType: 'veg',
+      recommended: false,
+      spiceLevel: 'mild',
+      preparationTime: 5,
+      availableFrom: '06:00',
+      availableTo: '23:00'
     }
   ],
-  
-  orders: [],
   currentOrder: [],
-  userType: null,
-  isAuthenticated: false,
-  
-  analytics: {
-    dailySales: 2450.50,
-    weeklySales: 18205.75,
-    monthlySales: 78490.25,
-    completedToday: 12,
-    avgOrderValue: 204.20,
-    popularItems: [
-      { name: 'Masala Dosa', count: 25 },
-      { name: 'Chicken Biryani', count: 18 },
-      { name: 'Fish Curry', count: 12 }
-    ]
+  orders: [],
+  inventory: {
+    'Rice': { currentStock: 50, minStock: 10, unit: 'kg', cost: 2.5 },
+    'Chicken': { currentStock: 25, minStock: 5, unit: 'kg', cost: 8.0 },
+    'Paneer': { currentStock: 15, minStock: 3, unit: 'kg', cost: 6.0 },
+    'Tomatoes': { currentStock: 30, minStock: 8, unit: 'kg', cost: 1.5 },
+    'Onions': { currentStock: 40, minStock: 10, unit: 'kg', cost: 1.0 }
   },
-  
-  topDishes: [
-    'Masala Dosa',
-    'Chicken Biryani',
-    'Fish Curry',
-    'Sambar Idli',
-    'Rava Kesari'
-  ],
-  
-  youtubeVideos: [
-    'dQw4w9WgXcQ',
-    'kJQP7kiw5Fk'
-  ]
+  customerLoyalty: {
+    points: 250,
+    tier: 'Bronze',
+    totalSpent: 1250,
+    rewardsRedeemed: 2
+  },
+  youtubeVideos: ['dQw4w9WgXcQ', 'L_jWHffIx5E', 'ZZ5LpwO-An4'],
+  topDishes: ['Masala Dosa', 'Butter Chicken', 'Biryani', 'Paneer Tikka', 'Chole Bhature']
 };
 
-// Helper function to check if menu item is available at current time
-const isMenuItemAvailable = (item: MenuItem): boolean => {
-  if (!item.availableFrom || !item.availableTo) return true;
-  
-  const now = new Date();
-  const currentTime = now.getHours() * 60 + now.getMinutes();
-  
-  const [fromHours, fromMinutes] = item.availableFrom.split(':').map(Number);
-  const [toHours, toMinutes] = item.availableTo.split(':').map(Number);
-  
-  const fromTime = fromHours * 60 + fromMinutes;
-  const toTime = toHours * 60 + toMinutes;
-  
-  return currentTime >= fromTime && currentTime <= toTime;
-};
+type Action = 
+  | { type: 'SET_USER_TYPE'; payload: 'customer' | 'chef' | 'admin' | null }
+  | { type: 'SET_AUTHENTICATED'; payload: boolean }
+  | { type: 'UPDATE_RESTAURANT_SETTINGS'; payload: Partial<AppState['restaurant']> }
+  | { type: 'ADD_TO_CART'; payload: OrderItem }
+  | { type: 'REMOVE_FROM_CART'; payload: string }
+  | { type: 'UPDATE_CART_ITEM'; payload: { id: string; quantity: number } }
+  | { type: 'CLEAR_CART' }
+  | { type: 'PLACE_ORDER'; payload: Order }
+  | { type: 'UPDATE_ORDER_STATUS'; payload: { orderId: string; status: string } }
+  | { type: 'ADD_MENU_ITEM'; payload: MenuItem }
+  | { type: 'UPDATE_MENU_ITEM'; payload: MenuItem }
+  | { type: 'DELETE_MENU_ITEM'; payload: string }
+  | { type: 'TOGGLE_STOCK'; payload: string }
+  | { type: 'UPDATE_INVENTORY'; payload: Record<string, any> }
+  | { type: 'REDEEM_LOYALTY_REWARD'; payload: { rewardId: number; pointsUsed: number } }
+  | { type: 'ADD_LOYALTY_POINTS'; payload: number }
+  | { type: 'COMPLETE_ORDER_PAYMENT'; payload: any };
 
-// Reducer
-function appReducer(state: AppState, action: AppAction): AppState {
+// Enhanced reducer
+function appReducer(state: AppState, action: Action): AppState {
   switch (action.type) {
     case 'SET_USER_TYPE':
       return { ...state, userType: action.payload };
-      
+    
     case 'SET_AUTHENTICATED':
       return { ...state, isAuthenticated: action.payload };
-      
+    
+    case 'UPDATE_RESTAURANT_SETTINGS':
+      return {
+        ...state,
+        restaurant: { ...state.restaurant, ...action.payload }
+      };
+    
     case 'ADD_TO_CART':
-      const existingItemIndex = state.currentOrder.findIndex(
-        item => item.menuItem.id === action.payload.menuItem.id && item.orderType === action.payload.orderType
-      );
-      
-      if (existingItemIndex >= 0) {
-        const updatedOrder = [...state.currentOrder];
-        updatedOrder[existingItemIndex].quantity += action.payload.quantity;
-        return { ...state, currentOrder: updatedOrder };
-      } else {
-        return {
-          ...state,
-          currentOrder: [...state.currentOrder, {
-            menuItem: action.payload.menuItem,
-            quantity: action.payload.quantity,
-            orderType: action.payload.orderType
-          }]
-        };
-      }
-      
+      return {
+        ...state,
+        currentOrder: [...state.currentOrder, action.payload]
+      };
+    
     case 'REMOVE_FROM_CART':
       return {
         ...state,
-        currentOrder: state.currentOrder.filter(item => item.menuItem.id !== action.payload)
+        currentOrder: state.currentOrder.filter(item => item.id !== action.payload)
       };
-      
+    
+    case 'UPDATE_CART_ITEM':
+      return {
+        ...state,
+        currentOrder: state.currentOrder.map(item =>
+          item.id === action.payload.id
+            ? { ...item, quantity: action.payload.quantity }
+            : item
+        )
+      };
+    
     case 'CLEAR_CART':
       return { ...state, currentOrder: [] };
-      
+    
     case 'PLACE_ORDER':
-      if (state.currentOrder.length === 0) return state;
-      
-      const newOrder: Order = {
-        id: Date.now().toString(),
-        tableNumber: state.restaurant.table,
-        items: [...state.currentOrder],
-        status: 'new',
-        total: state.currentOrder.reduce((sum, item) => sum + (item.menuItem.price * item.quantity), 0),
-        timestamp: new Date()
-      };
+      const orderTotal = action.payload.total;
+      const pointsEarned = Math.floor(orderTotal * (state.customerLoyalty.tier === 'Bronze' ? 1 : state.customerLoyalty.tier === 'Silver' ? 1.2 : state.customerLoyalty.tier === 'Gold' ? 1.5 : 2));
       
       return {
         ...state,
-        orders: [...state.orders, newOrder],
-        currentOrder: []
+        orders: [...state.orders, action.payload],
+        currentOrder: [],
+        customerLoyalty: {
+          ...state.customerLoyalty,
+          points: state.customerLoyalty.points + pointsEarned,
+          totalSpent: state.customerLoyalty.totalSpent + orderTotal
+        }
       };
-      
+    
     case 'UPDATE_ORDER_STATUS':
       return {
         ...state,
@@ -289,65 +292,13 @@ function appReducer(state: AppState, action: AppAction): AppState {
             : order
         )
       };
-      
-    case 'MODIFY_ORDER':
-      return {
-        ...state,
-        orders: state.orders.map(order =>
-          order.id === action.payload.orderId
-            ? { 
-                ...order, 
-                items: action.payload.items,
-                total: action.payload.items.reduce((sum, item) => sum + (item.menuItem.price * item.quantity), 0)
-              }
-            : order
-        )
-      };
-
-    case 'ADD_TO_EXISTING_ORDER':
-      return {
-        ...state,
-        orders: state.orders.map(order =>
-          order.id === action.payload.orderId
-            ? { 
-                ...order, 
-                items: [...order.items, ...action.payload.items],
-                total: [...order.items, ...action.payload.items].reduce((sum, item) => sum + (item.menuItem.price * item.quantity), 0)
-              }
-            : order
-        )
-      };
-      
-    case 'COMPLETE_ORDER_PAYMENT':
-      const updatedOrders = state.orders.map(order =>
-        order.id === action.payload && order.status === 'ready'
-          ? { ...order, status: 'completed' as const }
-          : order
-      );
-      
-      const completedOrder = state.orders.find(order => order.id === action.payload);
-      const newDailySales = completedOrder 
-        ? state.analytics.dailySales + completedOrder.total
-        : state.analytics.dailySales;
-      
-      const newCompletedToday = completedOrder ? state.analytics.completedToday + 1 : state.analytics.completedToday;
-      
-      return {
-        ...state,
-        orders: updatedOrders,
-        analytics: {
-          ...state.analytics,
-          dailySales: newDailySales,
-          completedToday: newCompletedToday
-        }
-      };
-      
+    
     case 'ADD_MENU_ITEM':
       return {
         ...state,
         menuItems: [...state.menuItems, action.payload]
       };
-      
+    
     case 'UPDATE_MENU_ITEM':
       return {
         ...state,
@@ -355,59 +306,98 @@ function appReducer(state: AppState, action: AppAction): AppState {
           item.id === action.payload.id ? action.payload : item
         )
       };
-      
+    
     case 'DELETE_MENU_ITEM':
       return {
         ...state,
         menuItems: state.menuItems.filter(item => item.id !== action.payload)
       };
-      
+    
     case 'TOGGLE_STOCK':
       return {
         ...state,
         menuItems: state.menuItems.map(item =>
-          item.id === action.payload ? { ...item, inStock: !item.inStock } : item
+          item.id === action.payload
+            ? { ...item, inStock: !item.inStock }
+            : item
         )
       };
-
-    case 'UPDATE_RESTAURANT_SETTINGS':
+    
+    case 'UPDATE_INVENTORY':
       return {
         ...state,
-        restaurant: action.payload
+        inventory: { ...state.inventory, ...action.payload }
       };
+    
+    case 'REDEEM_LOYALTY_REWARD':
+      return {
+        ...state,
+        customerLoyalty: {
+          ...state.customerLoyalty,
+          points: state.customerLoyalty.points - action.payload.pointsUsed,
+          rewardsRedeemed: state.customerLoyalty.rewardsRedeemed + 1
+        }
+      };
+    
+    case 'ADD_LOYALTY_POINTS':
+      let newTier = state.customerLoyalty.tier;
+      const newPoints = state.customerLoyalty.points + action.payload;
       
-    case 'ADD_FEEDBACK':
+      if (newPoints >= 2000) newTier = 'Platinum';
+      else if (newPoints >= 1000) newTier = 'Gold';
+      else if (newPoints >= 500) newTier = 'Silver';
+      else newTier = 'Bronze';
+      
+      return {
+        ...state,
+        customerLoyalty: {
+          ...state.customerLoyalty,
+          points: newPoints,
+          tier: newTier
+        }
+      };
+    
+    case 'COMPLETE_ORDER_PAYMENT':
       return {
         ...state,
         orders: state.orders.map(order =>
-          order.id === action.payload.orderId
-            ? {
-                ...order,
-                customerFeedback: {
-                  rating: action.payload.rating,
-                  comment: action.payload.comment
-                }
-              }
+          order.id === action.payload.orderId || order.id === action.payload
+            ? { ...order, status: 'completed', paymentDetails: action.payload.paymentDetails }
             : order
         )
       };
-      
+    
     default:
       return state;
   }
 }
 
-// Context
-const AppContext = createContext<{
+interface AppContextType {
   state: AppState;
-  dispatch: React.Dispatch<AppAction>;
+  dispatch: React.Dispatch<Action>;
   isMenuItemAvailable: (item: MenuItem) => boolean;
-} | null>(null);
+}
 
-// Provider
+const AppContext = createContext<AppContextType | undefined>(undefined);
+
 export function AppProvider({ children }: { children: ReactNode }) {
   const [state, dispatch] = useReducer(appReducer, initialState);
-  
+
+  const isMenuItemAvailable = (item: MenuItem) => {
+    if (!item.availableFrom || !item.availableTo) return true;
+    
+    const now = new Date();
+    const currentTime = now.getHours() * 60 + now.getMinutes();
+    
+    const [fromHour, fromMinute] = item.availableFrom.split(':').map(Number);
+    const [toHour, toMinute] = item.availableTo.split(':').map(Number);
+    
+    const fromTime = fromHour * 60 + fromMinute;
+    const toTime = toHour * 60 + toMinute;
+    
+    return currentTime >= fromTime && currentTime <= toTime;
+  };
+
   return (
     <AppContext.Provider value={{ state, dispatch, isMenuItemAvailable }}>
       {children}
@@ -415,10 +405,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
   );
 }
 
-// Hook
 export function useApp() {
   const context = useContext(AppContext);
-  if (!context) {
+  if (context === undefined) {
     throw new Error('useApp must be used within an AppProvider');
   }
   return context;

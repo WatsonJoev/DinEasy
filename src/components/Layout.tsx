@@ -25,12 +25,12 @@ export function Layout({ children, title, showUserSwitch = true }: LayoutProps) 
   return (
     <div className="min-h-screen bg-cream">
       {/* Header */}
-      <header className="bg-earth-brown text-white shadow-lg">
+      <header className="bg-gradient-to-r from-charcoal to-zomp text-white shadow-lg">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-2xl font-bold">{state.restaurant.name}</h1>
-              {title && <p className="text-sm opacity-90">{title}</p>}
+              <h1 className="text-2xl font-bold text-white">{state.restaurant.name}</h1>
+              {title && <p className="text-sm opacity-90 text-white">{title}</p>}
             </div>
             
             {showUserSwitch && (
@@ -40,7 +40,7 @@ export function Layout({ children, title, showUserSwitch = true }: LayoutProps) 
                     size="sm"
                     variant={state.userType === 'customer' ? 'secondary' : 'ghost'}
                     onClick={() => handleUserTypeChange('customer')}
-                    className="text-xs"
+                    className="text-xs text-white hover:bg-white/20"
                   >
                     Customer
                   </Button>
@@ -48,7 +48,7 @@ export function Layout({ children, title, showUserSwitch = true }: LayoutProps) 
                     size="sm"
                     variant={state.userType === 'chef' ? 'secondary' : 'ghost'}
                     onClick={() => handleUserTypeChange('chef')}
-                    className="text-xs"
+                    className="text-xs text-white hover:bg-white/20"
                   >
                     Chef
                   </Button>
@@ -56,7 +56,7 @@ export function Layout({ children, title, showUserSwitch = true }: LayoutProps) 
                     size="sm"
                     variant={state.userType === 'admin' ? 'secondary' : 'ghost'}
                     onClick={() => handleUserTypeChange('admin')}
-                    className="text-xs"
+                    className="text-xs text-white hover:bg-white/20"
                   >
                     Admin
                   </Button>
