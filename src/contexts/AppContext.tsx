@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useReducer, ReactNode } from 'react';
 
 // Define the MenuItem interface
@@ -59,6 +60,13 @@ interface CustomerLoyalty {
   rewardsRedeemed: number;
 }
 
+interface Analytics {
+  dailySales: number;
+  weeklySales: number;
+  monthlySales: number;
+  completedToday: number;
+}
+
 interface AppState {
   userType: 'customer' | 'chef' | 'admin' | null;
   isAuthenticated: boolean;
@@ -75,33 +83,31 @@ interface AppState {
   customerLoyalty: CustomerLoyalty;
   youtubeVideos: string[];
   topDishes: string[];
+  analytics: Analytics;
 }
 
 // Define action types
-type ActionType =
-  | 'SET_USER_TYPE'
-  | 'SET_AUTHENTICATED'
-  | 'UPDATE_RESTAURANT_SETTINGS'
-  | 'ADD_TO_CART'
-  | 'REMOVE_FROM_CART'
-  | 'UPDATE_CART_ITEM'
-  | 'CLEAR_CART'
-  | 'PLACE_ORDER'
-  | 'UPDATE_ORDER_STATUS'
-  | 'ADD_MENU_ITEM'
-  | 'UPDATE_MENU_ITEM'
-  | 'DELETE_MENU_ITEM'
-  | 'TOGGLE_STOCK'
-  | 'UPDATE_INVENTORY'
-  | 'REDEEM_LOYALTY_REWARD'
-  | 'ADD_LOYALTY_POINTS'
-  | 'COMPLETE_ORDER_PAYMENT';
-
-// Define action interface
-interface Action {
-  type: ActionType;
-  payload?: any;
-}
+type Action = 
+  | { type: 'SET_USER_TYPE'; payload: 'customer' | 'chef' | 'admin' | null }
+  | { type: 'SET_AUTHENTICATED'; payload: boolean }
+  | { type: 'UPDATE_RESTAURANT_SETTINGS'; payload: Partial<AppState['restaurant']> }
+  | { type: 'ADD_TO_CART'; payload: OrderItem }
+  | { type: 'REMOVE_FROM_CART'; payload: string }
+  | { type: 'UPDATE_CART_ITEM'; payload: { id: string; quantity: number } }
+  | { type: 'CLEAR_CART' }
+  | { type: 'PLACE_ORDER'; payload: Order }
+  | { type: 'UPDATE_ORDER_STATUS'; payload: { orderId: string; status: string } }
+  | { type: 'ADD_MENU_ITEM'; payload: MenuItem }
+  | { type: 'UPDATE_MENU_ITEM'; payload: MenuItem }
+  | { type: 'DELETE_MENU_ITEM'; payload: string }
+  | { type: 'TOGGLE_STOCK'; payload: string }
+  | { type: 'UPDATE_INVENTORY'; payload: Record<string, any> }
+  | { type: 'REDEEM_LOYALTY_REWARD'; payload: { rewardId: number; pointsUsed: number } }
+  | { type: 'ADD_LOYALTY_POINTS'; payload: number }
+  | { type: 'COMPLETE_ORDER_PAYMENT'; payload: any }
+  | { type: 'ADD_TO_EXISTING_ORDER'; payload: any }
+  | { type: 'ADD_FEEDBACK'; payload: any }
+  | { type: 'MODIFY_ORDER'; payload: any };
 
 // Enhanced initial state
 const initialState: AppState = {
@@ -206,27 +212,14 @@ const initialState: AppState = {
     rewardsRedeemed: 2
   },
   youtubeVideos: ['dQw4w9WgXcQ', 'L_jWHffIx5E', 'ZZ5LpwO-An4'],
-  topDishes: ['Masala Dosa', 'Butter Chicken', 'Biryani', 'Paneer Tikka', 'Chole Bhature']
+  topDishes: ['Masala Dosa', 'Butter Chicken', 'Biryani', 'Paneer Tikka', 'Chole Bhature'],
+  analytics: {
+    dailySales: 2850,
+    weeklySales: 18240,
+    monthlySales: 76500,
+    completedToday: 12
+  }
 };
-
-type Action = 
-  | { type: 'SET_USER_TYPE'; payload: 'customer' | 'chef' | 'admin' | null }
-  | { type: 'SET_AUTHENTICATED'; payload: boolean }
-  | { type: 'UPDATE_RESTAURANT_SETTINGS'; payload: Partial<AppState['restaurant']> }
-  | { type: 'ADD_TO_CART'; payload: OrderItem }
-  | { type: 'REMOVE_FROM_CART'; payload: string }
-  | { type: 'UPDATE_CART_ITEM'; payload: { id: string; quantity: number } }
-  | { type: 'CLEAR_CART' }
-  | { type: 'PLACE_ORDER'; payload: Order }
-  | { type: 'UPDATE_ORDER_STATUS'; payload: { orderId: string; status: string } }
-  | { type: 'ADD_MENU_ITEM'; payload: MenuItem }
-  | { type: 'UPDATE_MENU_ITEM'; payload: MenuItem }
-  | { type: 'DELETE_MENU_ITEM'; payload: string }
-  | { type: 'TOGGLE_STOCK'; payload: string }
-  | { type: 'UPDATE_INVENTORY'; payload: Record<string, any> }
-  | { type: 'REDEEM_LOYALTY_REWARD'; payload: { rewardId: number; pointsUsed: number } }
-  | { type: 'ADD_LOYALTY_POINTS'; payload: number }
-  | { type: 'COMPLETE_ORDER_PAYMENT'; payload: any };
 
 // Enhanced reducer
 function appReducer(state: AppState, action: Action): AppState {
@@ -366,6 +359,12 @@ function appReducer(state: AppState, action: Action): AppState {
             : order
         )
       };
+
+    case 'ADD_TO_EXISTING_ORDER':
+    case 'ADD_FEEDBACK':
+    case 'MODIFY_ORDER':
+      // Placeholder implementations for missing actions
+      return state;
     
     default:
       return state;
