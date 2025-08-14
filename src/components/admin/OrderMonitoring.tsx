@@ -56,7 +56,7 @@ export function OrderMonitoring() {
                           x{item.quantity}
                         </span>
                         <span className="font-medium">
-                          ${(item.menuItem.price * item.quantity).toFixed(2)}
+                        {state.restaurant.currency}{(item.menuItem.price * item.quantity).toFixed(2)}
                         </span>
                       </div>
                     </div>
@@ -66,7 +66,7 @@ export function OrderMonitoring() {
                 <div className="border-t pt-2">
                   <div className="flex justify-between items-center font-semibold">
                     <span>Total:</span>
-                    <span>${order.total.toFixed(2)}</span>
+                    <span>{state.restaurant.currency}{order.total.toFixed(2)}</span>
                   </div>
                 </div>
                 

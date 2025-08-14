@@ -12,6 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useApp } from '@/contexts/AppContext';
 import { toast } from '@/hooks/use-toast';
 import { Plus, Edit, Trash2 } from 'lucide-react';
+import AddItems from './AddItems';
 
 export function MenuManagement() {
   const { state, dispatch } = useApp();
@@ -154,146 +155,6 @@ export function MenuManagement() {
     dispatch({ type: 'TOGGLE_STOCK', payload: itemId });
   };
 
-  const FormFields = () => (
-    <div className="space-y-4">
-      <div>
-        <Label htmlFor="name">Item Name</Label>
-        <Input
-          id="name"
-          value={formData.name}
-          onChange={(e) => setFormData({...formData, name: e.target.value})}
-          placeholder="Enter item name"
-        />
-      </div>
-      
-      <div>
-        <Label htmlFor="description">Description</Label>
-        <Textarea
-          id="description"
-          value={formData.description}
-          onChange={(e) => setFormData({...formData, description: e.target.value})}
-          placeholder="Enter item description"
-        />
-      </div>
-      
-      <div className="grid grid-cols-2 gap-4">
-        <div>
-          <Label htmlFor="price">Price ({state.restaurant.currency})</Label>
-          <Input
-            id="price"
-            type="number"
-            step="0.01"
-            value={formData.price}
-            onChange={(e) => setFormData({...formData, price: e.target.value})}
-            placeholder="0.00"
-          />
-        </div>
-        
-        <div>
-          <Label htmlFor="category">Category</Label>
-          <Input
-            id="category"
-            value={formData.category}
-            onChange={(e) => setFormData({...formData, category: e.target.value})}
-            placeholder="e.g., Main Course, Desserts"
-          />
-        </div>
-      </div>
-
-      <div className="grid grid-cols-2 gap-4">
-        <div>
-          <Label htmlFor="foodType">Food Type</Label>
-          <Select value={formData.foodType} onValueChange={(value: 'veg' | 'non-veg') => setFormData({...formData, foodType: value})}>
-            <SelectTrigger>
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="veg">Vegetarian</SelectItem>
-              <SelectItem value="non-veg">Non-Vegetarian</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-
-        <div>
-          <Label htmlFor="spiceLevel">Spice Level</Label>
-          <Select value={formData.spiceLevel} onValueChange={(value: 'mild' | 'medium' | 'hot') => setFormData({...formData, spiceLevel: value})}>
-            <SelectTrigger>
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="mild">Mild</SelectItem>
-              <SelectItem value="medium">Medium</SelectItem>
-              <SelectItem value="hot">Hot</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
-
-      <div>
-        <Label htmlFor="preparationTime">Preparation Time (minutes)</Label>
-        <Input
-          id="preparationTime"
-          type="number"
-          value={formData.preparationTime}
-          onChange={(e) => setFormData({...formData, preparationTime: e.target.value})}
-          placeholder="15"
-        />
-      </div>
-
-      <div className="grid grid-cols-2 gap-4">
-        <div>
-          <Label htmlFor="availableFrom">Available From</Label>
-          <Input
-            id="availableFrom"
-            type="time"
-            value={formData.availableFrom}
-            onChange={(e) => setFormData({...formData, availableFrom: e.target.value})}
-          />
-        </div>
-
-        <div>
-          <Label htmlFor="availableTo">Available To</Label>
-          <Input
-            id="availableTo"
-            type="time"
-            value={formData.availableTo}
-            onChange={(e) => setFormData({...formData, availableTo: e.target.value})}
-          />
-        </div>
-      </div>
-      
-      <div>
-        <Label htmlFor="image">Image URL</Label>
-        <Input
-          id="image"
-          value={formData.image}
-          onChange={(e) => setFormData({...formData, image: e.target.value})}
-          placeholder="https://example.com/image.jpg"
-        />
-      </div>
-      
-      <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-2">
-          <Switch
-            id="inStock"
-            checked={formData.inStock}
-            onCheckedChange={(checked) => setFormData({...formData, inStock: checked})}
-          />
-          <Label htmlFor="inStock">In Stock</Label>
-        </div>
-
-        <div className="flex items-center space-x-2">
-          <Switch
-            id="recommended"
-            checked={formData.recommended}
-            onCheckedChange={(checked) => setFormData({...formData, recommended: checked})}
-          />
-          <Label htmlFor="recommended">Recommended</Label>
-        </div>
-      </div>
-    </div>
-  );
-
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -310,7 +171,7 @@ export function MenuManagement() {
             <DialogHeader>
               <DialogTitle>Add New Menu Item</DialogTitle>
             </DialogHeader>
-            <FormFields />
+            <AddItems formData={formData} setFormData={setFormData} currency={state.restaurant.currency}/>
             <div className="flex gap-2 mt-4">
               <Button onClick={handleAdd} className="flex-1">Add Item</Button>
               <Button variant="outline" onClick={() => setIsAddDialogOpen(false)}>Cancel</Button>
@@ -412,7 +273,7 @@ export function MenuManagement() {
           <DialogHeader>
             <DialogTitle>Edit Menu Item</DialogTitle>
           </DialogHeader>
-          <FormFields />
+          <AddItems formData={formData} setFormData={setFormData} currency={state.restaurant.currency} />
           <div className="flex gap-2 mt-4">
             <Button onClick={handleUpdate} className="flex-1">Update Item</Button>
             <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>Cancel</Button>

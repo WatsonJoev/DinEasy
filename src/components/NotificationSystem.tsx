@@ -26,21 +26,21 @@ export function NotificationSystem() {
           case 'preparing':
             toast({
               title: "Order Update",
-              description: `Your order #${latestOrder.id.slice(-4)} is now being prepared!`,
+              description: `Your order #${String(latestOrder.id).slice(-4)} is now being prepared!`,
               duration: 5000,
             });
             break;
           case 'ready':
             toast({
               title: "Order Ready! 🍽️",
-              description: `Your order #${latestOrder.id.slice(-4)} is ready for pickup!`,
+              description: `Your order #${String(latestOrder.id).slice(-4)} is ready for pickup!`,
               duration: 10000,
             });
             break;
           case 'completed':
             toast({
               title: "Order Completed",
-              description: `Thank you for dining with us! Order #${latestOrder.id.slice(-4)} completed.`,
+              description: `Thank you for dining with us! Order #${String(latestOrder.id).slice(-4)} completed.`,
               duration: 5000,
             });
             break;

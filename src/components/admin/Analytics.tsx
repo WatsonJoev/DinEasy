@@ -30,7 +30,7 @@ export function Analytics() {
               <DollarSign className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">${data.amount.toFixed(2)}</div>
+              <div className="text-2xl font-bold">{state.restaurant.currency}{data.amount.toFixed(2)}</div>
               <div className={`text-xs flex items-center ${
                 data.change > 0 ? 'text-green-600' : 'text-red-600'
               }`}>
@@ -109,17 +109,17 @@ export function Analytics() {
           <div className="space-y-4">
             <div className="flex justify-between items-center">
               <span>This Week</span>
-              <span className="font-bold">${state.analytics.weeklySales.toFixed(2)}</span>
+              <span className="font-bold">{state.restaurant.currency}{state.analytics.weeklySales.toFixed(2)}</span>
             </div>
             <div className="flex justify-between items-center">
               <span>Previous Week</span>
-              <span className="font-bold">${(state.analytics.weeklySales * 0.92).toFixed(2)}</span>
+              <span className="font-bold">{state.restaurant.currency}{(state.analytics.weeklySales * 0.92).toFixed(2)}</span>
             </div>
             <div className="border-t pt-2">
               <div className="flex justify-between items-center">
                 <span className="font-medium">Difference</span>
                 <span className="font-bold text-green-600">
-                  +${(state.analytics.weeklySales * 0.08).toFixed(2)} (+8.2%)
+                  +{state.restaurant.currency}{(state.analytics.weeklySales * 0.08).toFixed(2)} (+8.2%)
                 </span>
               </div>
             </div>

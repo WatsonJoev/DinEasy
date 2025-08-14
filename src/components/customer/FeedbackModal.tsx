@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -6,6 +5,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { useApp } from '@/contexts/AppContext';
 import { toast } from '@/hooks/use-toast';
 import { Star } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 interface FeedbackModalProps {
   open: boolean;
@@ -18,6 +18,13 @@ export function FeedbackModal({ open, onOpenChange, orderId }: FeedbackModalProp
   const [rating, setRating] = useState(0);
   const [comment, setComment] = useState('');
   const [hoveredRating, setHoveredRating] = useState(0);
+  const navigate = useNavigate();
+
+  const handleFeedbackCompletion = () => {
+    dispatch({ type: 'CLEAR_ALL_ORDERS' });
+    navigate('/'); // Navigate to home page
+    onOpenChange(false); // Close the modal
+  };
 
   const handleSubmitFeedback = () => {
     if (rating === 0) {
@@ -39,10 +46,13 @@ export function FeedbackModal({ open, onOpenChange, orderId }: FeedbackModalProp
       description: "Your feedback helps us improve our service"
     });
 
-    // Reset form
     setRating(0);
     setComment('');
-    onOpenChange(false);
+    handleFeedbackCompletion();
+  };
+
+  const handleSkip = () => {
+    handleFeedbackCompletion();
   };
 
   return (
@@ -51,11 +61,11 @@ export function FeedbackModal({ open, onOpenChange, orderId }: FeedbackModalProp
         <DialogHeader>
           <DialogTitle>Share Your Experience</DialogTitle>
         </DialogHeader>
-        
+
         <div className="space-y-6">
           <div className="text-center">
             <h4 className="font-semibold mb-4">How was your dining experience?</h4>
-            
+
             <div className="flex justify-center gap-2 mb-2">
               {[1, 2, 3, 4, 5].map((star) => (
                 <button
@@ -75,7 +85,7 @@ export function FeedbackModal({ open, onOpenChange, orderId }: FeedbackModalProp
                 </button>
               ))}
             </div>
-            
+
             <p className="text-sm text-muted-foreground">
               {rating === 0 && 'Click to rate'}
               {rating === 1 && 'Poor'}
@@ -85,7 +95,7 @@ export function FeedbackModal({ open, onOpenChange, orderId }: FeedbackModalProp
               {rating === 5 && 'Excellent'}
             </p>
           </div>
-          
+
           <div>
             <label className="block text-sm font-medium mb-2">
               Additional Comments (Optional)
@@ -97,11 +107,11 @@ export function FeedbackModal({ open, onOpenChange, orderId }: FeedbackModalProp
               rows={4}
             />
           </div>
-          
+
           <div className="flex gap-2">
             <Button
               variant="outline"
-              onClick={() => onOpenChange(false)}
+              onClick={handleSkip}
               className="flex-1"
             >
               Skip
