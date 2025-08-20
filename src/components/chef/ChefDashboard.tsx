@@ -163,7 +163,7 @@ export function ChefDashboard() {
     };
   }, []);
 
-  const handleStatusUpdate = async (orderId: string, newStatus: 'preparing' | 'ready') => {
+  const handleStatusUpdate = async (orderId: string | number, newStatus: 'preparing' | 'ready') => {
     try {
       console.log(`Updating order ${orderId} to status: ${newStatus}`);
       
@@ -171,7 +171,7 @@ export function ChefDashboard() {
       const { data: orderData, error: orderError } = await supabase
         .from('orders')
         .update({ status: newStatus })
-        .eq('id', orderId)
+        .eq('id', Number(orderId))
         .select();
 
       if (orderError) {
@@ -217,7 +217,7 @@ export function ChefDashboard() {
     }
   };
 
-  const handleStartPreparing = async (orderId: string) => {
+  const handleStartPreparing = async (orderId: string | number) => {
     try {
       console.log(`Starting preparation for order ${orderId}`);
       
@@ -225,7 +225,7 @@ export function ChefDashboard() {
       const { data: orderData, error: orderError } = await supabase
         .from('orders')
         .update({ status: 'preparing' })
-        .eq('id', orderId)
+        .eq('id', Number(orderId))
         .select();
 
       if (orderError) {
